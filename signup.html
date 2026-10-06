@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация — ФинПомощник</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --main:      #0B3C49;
+            --bg:        #CBD2D0;
+            --text:      #6A8D92;
+            --accent-y:  #F0E100;
+            --accent-p:  #731963;
+            --white:     #ffffff;
+            --card:      #ffffff;
+            --border:    rgba(106, 141, 146, 0.12);
+            --border-strong: rgba(106, 141, 146, 0.25);
+            --shadow:    rgba(11, 60, 73, 0.07);
+            --shadow-hover: rgba(11, 60, 73, 0.12);
+            --input-bg:  #CBD2D0;
+        }
+        [data-theme="dark"] {
+            --main:      #F0E100;
+            --bg:        #0a181d;
+            --text:      #8FAEB4;
+            --accent-y:  #F0E100;
+            --accent-p:  #C43FAF;
+            --white:     #142830;
+            --card:      #142830;
+            --border:    rgba(143, 174, 180, 0.15);
+            --border-strong: rgba(143, 174, 180, 0.3);
+            --shadow:    rgba(0, 0, 0, 0.4);
+            --shadow-hover: rgba(0, 0, 0, 0.6);
+            --input-bg:  #0f2229;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -20%; right: -10%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(240, 225, 0, 0.15), transparent 60%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -20%; left: -10%;
+            width: 450px; height: 450px;
+            background: radial-gradient(circle, rgba(115, 25, 99, 0.12), transparent 60%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .signup-card {
+            position: relative;
+            z-index: 1;
+            background: var(--card);
+            border-radius: 24px;
+            padding: 2.5rem 2rem 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 48px var(--shadow-hover);
+            border: 1px solid var(--border);
+            animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .signup-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--main);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        [data-theme="dark"] .signup-logo { color: var(--accent-y); }
+
+        .signup-logo-mark {
+            width: 46px; height: 46px;
+            background: var(--accent-y);
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            color: #0B3C49;
+            font-size: 1.35rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(240, 225, 0, 0.3);
+        }
+
+        .signup-sub {
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1.1rem;
+        }
+        .field label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .field input {
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--input-bg);
+            color: var(--main);
+            font-size: 1rem;
+            font-family: inherit;
+            font-weight: 500;
+            outline: none;
+            transition: 0.2s;
+        }
+        [data-theme="dark"] .field input { color: var(--text); }
+        .field input::placeholder { color: var(--text); opacity: 0.6; }
+        .field input:focus {
+            border-color: var(--main);
+            box-shadow: 0 0 0 3px rgba(11, 60, 73, 0.12);
+        }
+        [data-theme="dark"] .field input:focus {
+            border-color: var(--accent-y);
+            box-shadow: 0 0 0 3px rgba(240, 225, 0, 0.15);
+        }
+
+        .field-password { position: relative; }
+        .field-password input { padding-right: 3rem; }
+        .toggle-password {
+            position: absolute;
+            right: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.55;
+            transition: opacity 0.2s;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+        .toggle-password:hover { opacity: 1; }
+
+        .password-hint {
+            font-size: 0.72rem;
+            color: var(--text);
+            margin-top: -0.5rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.95rem;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent-y);
+            color: #0B3C49;
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+            box-shadow: 0 6px 18px rgba(240, 225, 0, 0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            letter-spacing: 0.01em;
+            margin-top: 0.5rem;
+        }
+        .btn-submit:hover {
+            background: #ffe600;
+            box-shadow: 0 8px 22px rgba(240, 225, 0, 0.5);
+            transform: translateY(-1px);
+        }
+        .btn-submit:active { transform: translateY(0) scale(0.98); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-submit__spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(11, 60, 73, 0.3);
+            border-top-color: #0B3C49;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        .btn-submit.loading .btn-submit__spinner { display: inline-block; }
+        .btn-submit.loading .btn-submit__text { opacity: 0.7; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error {
+            color: var(--accent-p);
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 0.9rem;
+            min-height: 1.2em;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+        .error--success { color: var(--main); }
+        [data-theme="dark"] .error--success { color: var(--accent-y); }
+
+        .link-row {
+            margin-top: 1.75rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text);
+            text-align: center;
+        }
+        .link-row a {
+            color: var(--accent-p);
+            font-weight: 700;
+            text-decoration: none;
+            margin-left: 0.35rem;
+        }
+        .link-row a:hover { text-decoration: underline; }
+
+        .theme-btn {
+            position: fixed;
+            top: 1rem; right: 1rem;
+            z-index: 10;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1.5px solid var(--border-strong);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.15rem;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .theme-btn:hover { border-color: var(--accent-y); transform: scale(1.05); }
+
+        @media (max-width: 480px) {
+            .signup-card { padding: 2rem 1.5rem 1.5rem; border-radius: 20px; }
+            .signup-logo { font-size: 1.25rem; }
+            .signup-logo-mark { width: 42px; height: 42px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Переключить тему">🌙</button>
+
+    <form class="signup-card" onsubmit="event.preventDefault(); doSignup();" autocomplete="on">
+        <div class="signup-logo">
+            <span class="signup-logo-mark">₽</span>
+            <span>ФинПомощник</span>
+        </div>
+        <div class="signup-sub">Создайте аккаунт, чтобы начать</div>
+
+        <div class="field">
+            <label for="signupEmail">Email</label>
+            <input
+                type="email"
+                id="signupEmail"
+                name="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+                required
+            >
+        </div>
+
+        <div class="field field-password">
+            <label for="signupPassword">Пароль</label>
+            <input
+                type="password"
+                id="signupPassword"
+                name="password"
+                placeholder="Минимум 6 символов"
+                autocomplete="new-password"
+                minlength="6"
+                required
+            >
+            <button
+                type="button"
+                class="toggle-password"
+                onclick="togglePasswordVisibility('signupPassword', this)"
+                aria-label="Показать пароль"
+            >👁️</button>
+        </div>
+        <div class="password-hint">Используйте минимум 6 символов. Рекомендуем — 8+ и цифры.</div>
+
+        <div class="field field-password">
+            <label for="signupPasswordConfirm">Повторите пароль</label>
+            <input
+                type="password"
+                id="signupPasswordConfirm"
+                name="password_confirm"
+                placeholder="Повторите пароль"
+                autocomplete="new-password"
+                minlength="6"
+                required
+            >
+            <button
+                type="button"
+                class="toggle-password"
+                onclick="togglePasswordVisibility('signupPasswordConfirm', this)"
+                aria-label="Показать пароль"
+            >👁️</button>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <span class="btn-submit__spinner"></span>
+            <span class="btn-submit__text">Создать аккаунт</span>
+        </button>
+
+        <div class="error" id="error" role="alert"></div>
+
+        <div class="link-row">
+            Уже есть аккаунт? <a href="login.html">Войти</a>
+        </div>
+    </form>
+
+    <script>
+        /* ============================================================
+           ★★★ ЗАМЕНИТЕ ЗДЕСЬ ★★★
+           ============================================================ */
+        const SUPABASE_URL      = 'https://xxxxxxxxxxxx.supabase.co';   // ← ЗАМЕНИТЕ
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // ← ЗАМЕНИТЕ
+
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        /* ============================================================
+           ТЁМНАЯ ТЕМА
+           ============================================================ */
+        const THEME_KEY = 'finassist-theme';
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeBtn').textContent = '☀️';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('themeBtn').textContent = '🌙';
+            }
+        }
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            applyTheme(newTheme);
+            try { localStorage.setItem(THEME_KEY, newTheme); } catch (e) {}
+        }
+        function initTheme() {
+            let saved = null;
+            try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+            if (saved === 'dark') applyTheme('dark');
+            else if (saved === 'light') applyTheme('light');
+            else {
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+        }
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        /* ============================================================
+           ★ РЕГИСТРАЦИЯ ЧЕРЕЗ SUPABASE ★
+           ============================================================ */
+        async function doSignup() {
+            const email    = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirm  = document.getElementById('signupPasswordConfirm').value;
+            const err      = document.getElementById('error');
+            const btn      = document.getElementById('submitBtn');
+            const btnText  = btn.querySelector('.btn-submit__text');
+
+            err.textContent = '';
+            err.classList.remove('error--success');
+
+            // Простая валидация
+            if (!email || !password) {
+                err.textContent = 'Заполните все поля';
+                return;
+            }
+            if (password.length < 6) {
+                err.textContent = 'Пароль должен быть не короче 6 символов';
+                return;
+            }
+            if (password !== confirm) {
+                err.textContent = 'Пароли не совпадают';
+                return;
+            }
+
+            btn.classList.add('loading');
+            btnText.textContent = 'Создаём аккаунт…';
+            btn.disabled = true;
+
+            // ★ Регистрация в Supabase
+            const { data, error } = await sb.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    // ★ Куда вернуть пользователя после подтверждения email (если оно включено)
+                    emailRedirectTo: window.location.origin + '/app.html',
+                },
+            });
+
+            if (error) {
+                btn.classList.remove('loading');
+                btnText.textContent = 'Создать аккаунт';
+                btn.disabled = false;
+
+                // Понятные сообщения
+                if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+                    err.textContent = 'Пользователь с таким email уже зарегистрирован. Войдите или восстановите пароль.';
+                } else if (error.message.includes('Password should be at least')) {
+                    err.textContent = 'Пароль слишком короткий';
+                } else if (error.message.includes('invalid email')) {
+                    err.textContent = 'Некорректный email';
+                } else {
+                    err.textContent = 'Ошибка регистрации: ' + error.message;
+                }
+                console.error('Supabase signup error:', error);
+                return;
+            }
+
+            // Если Confirm email ВЫКЛЮЧЕН — data.session сразу существует
+            if (data.session) {
+                btnText.textContent = 'Готово!';
+                try {
+                    localStorage.setItem('finassist-user', email);
+                } catch (e) {}
+                setTimeout(function () {
+                    window.location.replace('app.html');
+                }, 400);
+                return;
+            }
+
+            // Если Confirm email ВКЛЮЧЕН — сессии нет, пользователь должен подтвердить email
+            btn.classList.remove('loading');
+            btnText.textContent = 'Создать аккаунт';
+            btn.disabled = false;
+            err.textContent = 'Аккаунт создан! Проверьте почту и перейдите по ссылке из письма.';
+            err.classList.add('error--success');
+        }
+
+        /* ============================================================
+           ИНИЦИАЛИЗАЦИЯ
+           ============================================================ */
+        document.addEventListener('DOMContentLoaded', async function () {
+            initTheme();
+            document.getElementById('signupEmail').focus();
+
+            // Если уже авторизован — сразу в приложение
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                window.location.replace('app.html');
+            }
+        });
+    </script>
+</body>
+</html>

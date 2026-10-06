@@ -3,21 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
     <title>ФинПомощник — личный финансовый ассистент</title>
+
+    <!-- ============================================================
+         SUPABASE SDK — подключение через CDN (то же, что в login.html)
+         ============================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Скрываем контент, пока не проверим сессию Supabase.
+         Проверка происходит асинхронно в основном <script>. -->
+    <style>
+        body { visibility: hidden; }
+    </style>
+
     <style>
         /* ========== СВЕТЛАЯ ПАЛИТРА (по умолчанию) ========== */
-=======
-    <title>ФинПомощник — загрузка…</title>
-    <style>
->>>>>>> 32b84df (update project)
         :root {
             --main:      #0B3C49;
             --bg:        #CBD2D0;
             --text:      #6A8D92;
             --accent-y:  #F0E100;
             --accent-p:  #731963;
-<<<<<<< HEAD
             --white:     #ffffff;
             --card:      #ffffff;
             --border:    rgba(106, 141, 146, 0.12);
@@ -41,16 +47,12 @@
         }
 
         /* ========== ТЁМНАЯ ПАЛИТРА ========== */
-=======
-        }
->>>>>>> 32b84df (update project)
         [data-theme="dark"] {
             --main:      #F0E100;
             --bg:        #0a181d;
             --text:      #8FAEB4;
             --accent-y:  #F0E100;
             --accent-p:  #C43FAF;
-<<<<<<< HEAD
             --white:     #142830;
             --card:      #142830;
             --border:    rgba(143, 174, 180, 0.15);
@@ -162,9 +164,34 @@
             padding-top: 1.25rem;
             border-top: 1px solid rgba(203, 210, 208, 0.15);
             font-size: 0.75rem;
-            opacity: 0.6;
+            opacity: 0.85;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
         }
         [data-theme="dark"] .sidebar__footer { border-top-color: rgba(240, 225, 0, 0.15); }
+
+        .sidebar__logout {
+            background: transparent;
+            border: 1px solid rgba(203, 210, 208, 0.3);
+            color: inherit;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 0.02em;
+        }
+        .sidebar__logout:hover {
+            border-color: var(--accent-y);
+            color: var(--accent-y);
+        }
+        [data-theme="dark"] .sidebar__logout {
+            border-color: rgba(240, 225, 0, 0.3);
+        }
 
         /* ============================================================
            ОСНОВНАЯ ОБЛАСТЬ
@@ -382,36 +409,11 @@
            ============================================================ */
         .page { display: none; }
         .page.active { display: block; animation: fadeIn 0.3s ease; }
-=======
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--main);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-            animation: fadeIn 0.4s ease;
-        }
->>>>>>> 32b84df (update project)
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-<<<<<<< HEAD
         .table-wrap {
             background: var(--card);
             border-radius: 20px;
@@ -665,7 +667,7 @@
         }
 
         /* ============================================================
-           МОБИЛЬНАЯ НАВИГАЦИЯ (скрыта на десктопе)
+           МОБИЛЬНАЯ НАВИГАЦИЯ
            ============================================================ */
         .mobile-nav {
             display: none;
@@ -721,7 +723,7 @@
         .mobile-nav__item--center .mobile-nav__label { color: var(--accent-y); opacity: 1; }
 
         /* ============================================================
-           МОБИЛЬНАЯ ШАПКА (скрыта на десктопе)
+           МОБИЛЬНАЯ ШАПКА
            ============================================================ */
         .mobile-header {
             display: none;
@@ -805,7 +807,7 @@
         }
 
         /* ============================================================
-           МОБИЛЬНЫЕ БЫСТРЫЕ ДЕЙСТВИЯ (скрыты на десктопе)
+           МОБИЛЬНЫЕ БЫСТРЫЕ ДЕЙСТВИЯ
            ============================================================ */
         .mobile-quick {
             display: none;
@@ -839,7 +841,7 @@
         [data-theme="dark"] .mobile-quick__label { color: var(--text); }
 
         /* ============================================================
-           КНОПКА-БУРГЕР (только десктоп-узкий)
+           КНОПКА-БУРГЕР
            ============================================================ */
         .mobile-menu-btn {
             display: none;
@@ -867,19 +869,15 @@
         /* ============================================================
            АДАПТИВ
            ============================================================ */
-
-        /* Промежуточные размеры */
         @media (max-width: 1200px) {
             .kpi-grid { grid-template-columns: repeat(2, 1fr); }
             .dashboard-grid { grid-template-columns: 1fr; }
             .integration-grid { grid-template-columns: 1fr 1fr; }
         }
 
-        /* Планшеты и ниже — переключаемся на мобильный layout */
         @media (max-width: 900px) {
             .app { grid-template-columns: 1fr; }
 
-            /* Сайдбар превращаем в выезжающее меню */
             .sidebar {
                 position: fixed; left: 0; top: 0;
                 width: 260px; height: 100vh;
@@ -890,26 +888,18 @@
             .sidebar.open { transform: translateX(0); }
 
             .mobile-menu-btn { display: flex; }
-
-            /* Мобильная шапка и быстрые действия — показать */
             .mobile-header { display: block; }
             .mobile-quick { display: grid; }
-
-            /* Нижняя мобильная навигация — показать */
             .mobile-nav { display: flex; }
 
-            /* Отступ под фиксированную навигацию */
             .main-area { padding: 1.25rem 1.25rem 6.5rem; }
 
-            /* Скрываем часть десктопных кнопок в шапке */
             .topbar__actions .btn--ghost,
             .topbar__actions .btn--secondary { display: none; }
 
-            /* Уменьшаем заголовок */
             .topbar__title { font-size: 1.35rem; }
         }
 
-        /* Маленькие телефоны */
         @media (max-width: 600px) {
             .kpi-grid { grid-template-columns: 1fr; }
             .integration-grid { grid-template-columns: 1fr; }
@@ -932,7 +922,6 @@
             .chart-period span { padding: 0.3rem 0.5rem; font-size: 0.68rem; }
         }
 
-        /* Плавные переходы при смене темы */
         .panel, .kpi-card, .setting-row, .table-wrap,
         .integration-card, .mobile-balance, .store-item, .category-item__bar,
         .btn, .op-form__input, .op-form__select, .op-form__textarea,
@@ -940,58 +929,15 @@
         .mobile-header, .sidebar, .mobile-nav {
             transition: background-color 0.3s ease, color 0.3s ease,
                         border-color 0.3s ease, box-shadow 0.3s ease;
-=======
-        .loader__logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: var(--main);
-            letter-spacing: -0.02em;
-        }
-        [data-theme="dark"] .loader__logo { color: var(--accent-y); }
-
-        .loader__mark {
-            width: 48px;
-            height: 48px;
-            background: var(--accent-y);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #0B3C49;
-            font-size: 1.4rem;
-            font-weight: 800;
-            box-shadow: 0 8px 20px rgba(240, 225, 0, 0.35);
-        }
-
-        .loader__spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid rgba(106, 141, 146, 0.25);
-            border-top-color: var(--accent-y);
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .loader__text {
-            font-size: 0.85rem;
-            color: var(--text);
-            font-weight: 600;
-            letter-spacing: 0.02em;
->>>>>>> 32b84df (update project)
         }
     </style>
 </head>
 <body>
 
-<<<<<<< HEAD
     <div class="app">
 
         <!-- ============================================================
-             САЙДБАР (десктоп; на мобильной — выезжающий)
+             САЙДБАР
              ============================================================ -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar__logo">
@@ -1007,7 +953,10 @@
                 <button class="sidebar__link" data-page="receipts" onclick="goToPage('receipts', this)"><span class="sidebar__link-icon">🧾</span><span>Чеки</span></button>
                 <button class="sidebar__link" data-page="settings" onclick="goToPage('settings', this)"><span class="sidebar__link-icon">⚙️</span><span>Настройки</span></button>
             </nav>
-            <div class="sidebar__footer">Версия 2.8 · © 2026 ФинПомощник</div>
+            <div class="sidebar__footer">
+                <span>Версия 2.8 · © 2026</span>
+                <button class="sidebar__logout" onclick="logout()">Выйти</button>
+            </div>
         </aside>
 
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -1017,7 +966,7 @@
              ============================================================ -->
         <main class="main-area">
 
-            <!-- МОБИЛЬНАЯ ШАПКА (видна только на мобильных) -->
+            <!-- МОБИЛЬНАЯ ШАПКА -->
             <header class="mobile-header">
                 <div class="mobile-header__top">
                     <div>
@@ -1058,7 +1007,6 @@
                     </div>
                 </div>
 
-                <!-- Быстрые действия — только на мобильных -->
                 <div class="mobile-quick">
                     <div class="mobile-quick__item" onclick="goToPage('receipts')"><div class="mobile-quick__icon">🧾</div><div class="mobile-quick__label">Чек</div></div>
                     <div class="mobile-quick__item" onclick="goToPage('integrations')"><div class="mobile-quick__icon">🔗</div><div class="mobile-quick__label">Интеграции</div></div>
@@ -1338,7 +1286,7 @@
 
     </div>
 
-    <!-- Мобильная нижняя навигация (скрыта на десктопе) -->
+    <!-- Мобильная нижняя навигация -->
     <nav class="mobile-nav">
         <button class="mobile-nav__item active" data-page="dashboard" onclick="goToPage('dashboard', this)"><span class="mobile-nav__icon">🏠</span><span class="mobile-nav__label">Главная</span></button>
         <button class="mobile-nav__item" data-page="operations" onclick="goToPage('operations', this)"><span class="mobile-nav__icon">📋</span><span class="mobile-nav__label">Операции</span></button>
@@ -1348,6 +1296,17 @@
     </nav>
 
     <script>
+        /* ============================================================
+           ★★★ ЗАМЕНИТЕ ЗДЕСЬ ★★★
+           Те же значения, что в login.html:
+           Project URL и anon public key из Supabase → Settings → API
+           ============================================================ */
+        const SUPABASE_URL      = 'https://gwekltncletbpzxnxcxz.supabase.co';   // ← ЗАМЕНИТЕ
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3ZWtsdG5jbGV0YnB6eG54Y3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzQ4NTgsImV4cCI6MjEwNjg1MDg1OH0.AafvpIiBwwxVjBIYkNFOCywsV4XFiEFpOWWP_-mq5JU'; // ← ЗАМЕНИТЕ
+
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         /* ========== ДАННЫЕ ========== */
         const categories = [
             { name: 'Продукты',    amount: 24500, percent: 36, color: '#0B3C49', icon: '🛒' },
@@ -1435,6 +1394,14 @@
                 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 applyTheme(prefersDark ? 'dark' : 'light');
             }
+        }
+
+        /* ========== ВЫХОД ========== */
+        async function logout() {
+            // ★ Реальный выход из Supabase — удаляет сессию на клиенте
+            await sb.auth.signOut();
+            // finassist-user оставляем, чтобы подставить его на форме входа
+            window.location.replace('login.html');
         }
 
         /* ========== РЕНДЕР ========== */
@@ -1567,12 +1534,10 @@
 
         /* ========== НАВИГАЦИЯ ========== */
         function goToPage(pageId, btn) {
-            // Активная страница
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             const page = document.getElementById('page-' + pageId);
             if (page) page.classList.add('active');
 
-            // Активный пункт сайдбара
             document.querySelectorAll('.sidebar__link').forEach(l => l.classList.remove('active'));
             if (btn && btn.classList.contains('sidebar__link')) {
                 btn.classList.add('active');
@@ -1581,12 +1546,10 @@
                 if (link) link.classList.add('active');
             }
 
-            // Активный пункт мобильной навигации
             document.querySelectorAll('.mobile-nav__item').forEach(i => i.classList.remove('active'));
             const navItem = document.querySelector(`.mobile-nav__item[data-page="${pageId}"]`);
             if (navItem) navItem.classList.add('active');
 
-            // Скрыть сайдбар, если открыт
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('show');
 
@@ -1599,9 +1562,19 @@
         }
 
         /* ========== ИНИЦИАЛИЗАЦИЯ ========== */
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function () {
             initTheme();
 
+            // ★ Проверяем сессию Supabase.
+            // Если её нет — выкидываем на страницу входа.
+            const { data: { session } } = await sb.auth.getSession();
+
+            if (!session) {
+                window.location.replace('login.html');
+                return;
+            }
+
+            // Сессия есть — рендерим данные и показываем интерфейс
             renderCategories('desktopCategoryList');
             renderStores('desktopStoreList');
             renderIntegrations('desktopIntegrationGrid');
@@ -1613,47 +1586,10 @@
             const today = new Date().toISOString().split('T')[0];
             const dateEl = document.getElementById('opDate');
             if (dateEl) dateEl.value = today;
+
+            document.body.style.visibility = 'visible';
         });
     </script>
 
 </body>
 </html>
-=======
-    <div class="loader">
-        <div class="loader__logo">
-            <span class="loader__mark">₽</span>
-            <span>ФинПомощник</span>
-        </div>
-        <div class="loader__spinner"></div>
-        <div class="loader__text">Загружаем…</div>
-    </div>
-
-    <script>
-        (function () {
-            const THEME_KEY = 'finassist-theme';
-
-            // Применяем сохранённую тему сразу, чтобы не было «вспышки» белого
-            try {
-                const saved = localStorage.getItem(THEME_KEY);
-                if (saved === 'dark') {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                } else if (saved === 'light') {
-                    document.documentElement.removeAttribute('data-theme');
-                } else {
-                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                        document.documentElement.setAttribute('data-theme', 'dark');
-                    }
-                }
-            } catch (e) {}
-
-            // Роутер больше НЕ проверяет авторизацию — это делает login.html.
-            // Он просто отправляет пользователя на страницу входа,
-            // а login.html сам решит: показать форму или сразу в app.html.
-            setTimeout(function () {
-                window.location.replace('login.html');
-            }, 250);
-        })();
-    </script>
-</body>
-</html>
->>>>>>> 32b84df (update project)
