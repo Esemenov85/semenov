@@ -627,6 +627,15 @@
             initTheme();
             document.getElementById('login').focus();
 
+            if (localStorage.getItem('finassist-blocked') === '1') {
+                localStorage.removeItem('finassist-blocked');
+                const err = document.getElementById('error');
+                if (err) {
+                    err.textContent = 'Ваш аккаунт заблокирован администратором';
+                    err.classList.add('error--success'); // или отдельный класс для ошибки
+                }
+            }
+
             // ★ Проверяем сессию через Supabase.
             // Если она есть — сразу в приложение.
             const { data: { session } } = await sb.auth.getSession();
