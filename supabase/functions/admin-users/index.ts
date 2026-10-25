@@ -97,6 +97,33 @@ serve(async (req) => {
                 return json({ success: true })
             }
 
+            case 'ban_user': {
+                const { user_id, ban } = payload
+                if (!user_id) {
+                    return json({ error: 'Нужен user_id' }, 400)
+                }
+
+                // ban = true → блокируем на 100 лет, ban = false → снимаем блокировку
+                const banDuration = ban ? '876000h' : 'none'  // 876000 часов ≈ 100 лет
+
+                const { error } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
+                    ban_duration: banDuration,
+                })
+
+                if (error) {
+                    console.error('ban error:', error)
+                    return json({ error: error.message }, 400)
+                }
+
+                // Дублируем флаг в profiles для отображения в админке
+                await supabaseAdmin
+                    .from('profiles')
+                    .update({ is_blocked: ban, updated_at: new Date().toISOString() })
+                    .eq('id', user_id)
+
+                return json({ success: true })
+            }
+
             default:
                 return json({ error: 'Неизвестное действие: ' + action }, 400)
         }
@@ -113,29 +140,3 @@ function json(data: unknown, status = 200) {
     })
 }
 
-case 'ban_user': {
-    const { user_id, ban } = payload
-    if (!user_id) {
-        return json({ error: 'Нужен user_id' }, 400)
-    }
-
-    // ban = true → блокируем на 100 лет, ban = false → снимаем блокировку
-    const banDuration = ban ? '876000h' : 'none'  // 876000 часов ≈ 100 лет
-
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
-        ban_duration: banDuration,
-    })
-
-    if (error) {
-        console.error('ban error:', error)
-        return json({ error: error.message }, 400)
-    }
-
-    // Дублируем флаг в profiles для отображения в админке
-    await supabaseAdmin
-        .from('profiles')
-        .update({ is_blocked: ban, updated_at: new Date().toISOString() })
-        .eq('id', user_id)
-
-    return json({ success: true })
-}
