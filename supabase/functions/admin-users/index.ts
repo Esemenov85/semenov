@@ -1,0 +1,151 @@
+// // Follow this setup guide to integrate the Deno language server with your editor:
+// // https://deno.land/manual/getting_started/setup_your_environment
+// // This enables autocomplete, go to definition, etc.
+
+// // Setup type definitions for built-in Supabase Runtime APIs
+// import "@supabase/functions-js/edge-runtime.d.ts";
+// import { withSupabase } from "@supabase/server";
+
+// console.log("Hello from Functions!");
+
+// // This endpoint uses 'publishable' | 'secret' access, apiKey is required.
+// // Use publishable for Client-facing, key-validated endpoints
+// // Use secret for Server-to-server, internal calls
+// export default {
+//   fetch: withSupabase({ auth: ["publishable", "secret"] }, async (req, ctx) => {
+//     // Called by another service with a secret key
+//     // ctx.supabaseAdmin bypasses RLS — use for privileged operations
+//     /*
+//     if (ctx.authMode === "secret") {
+//       const { user_id } = await req.json();
+//       const { data } = await ctx.supabaseAdmin.auth.admin.getUserById(user_id);
+
+//       return Response.json({
+//         email: data?.user?.email,
+//       });
+//     }
+//     */
+
+//     const { name } = await req.json();
+
+//     return Response.json({
+//       message: `Hello ${name}!`,
+//     });
+//   }),
+// };
+
+/* To invoke locally:
+
+  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
+  2. Make an HTTP request:
+
+  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/admin-users' \
+    --header 'apiKey: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH' \
+    --data '{"name":"Functions"}'
+
+*/
+
+// supabase/functions/admin-users/index.ts
+// Edge Function: управление пользователями из админ-панели
+
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const ADMIN_EMAIL = 'esemenov85@gmail.com'
+
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+serve(async (req) => {
+    // CORS preflight
+    if (req.method === 'OPTIONS') {
+        return new Response('ok', { headers: corsHeaders })
+    }
+
+    try {
+        // 1. Проверяем, что запрос от авторизованного пользователя
+        const authHeader = req.headers.get('Authorization')
+        if (!authHeader) {
+            return json({ error: 'Нет токена авторизации' }, 401)
+        }
+        const jwt = authHeader.replace('Bearer ', '')
+
+        // 2. Создаём клиент с anon key, чтобы проверить JWT
+        const supabaseAuth = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        )
+        const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(jwt)
+
+        if (userError || !user) {
+            return json({ error: 'Не удалось проверить пользователя' }, 401)
+        }
+
+        // 3. Проверяем, что это админ
+        if (user.email !== ADMIN_EMAIL) {
+            return json({ error: 'Доступ запрещён: вы не администратор' }, 403)
+        }
+
+        // 4. Теперь можно использовать service_role
+        const supabaseAdmin = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+        )
+
+        // 5. Разбираем тело запроса
+        const body = await req.json()
+        const { action, payload } = body
+
+        // 6. Обрабатываем действия
+        switch (action) {
+            case 'create_user': {
+                const { email, password, first_name, last_name, phone, telegram, vk, max } = payload
+                if (!email || !password || !first_name || !last_name) {
+                    return json({ error: 'Обязательные поля: email, password, first_name, last_name' }, 400)
+                }
+
+                // Создаём пользователя в auth.users
+                const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+                    email,
+                    password,
+                    email_confirm: true,   // сразу подтверждён
+                    user_metadata: { first_name, last_name, phone, telegram, vk, max },
+                })
+
+                if (createError) {
+                    return json({ error: createError.message }, 400)
+                }
+
+                return json({ success: true, user: created.user })
+            }
+
+            case 'reset_password': {
+                const { user_id, new_password } = payload
+                if (!user_id || !new_password) {
+                    return json({ error: 'Нужны user_id и new_password' }, 400)
+                }
+                const { error } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
+                    password: new_password,
+                })
+                if (error) return json({ error: error.message }, 400)
+                return json({ success: true })
+            }
+
+            default:
+                return json({ error: 'Неизвестное действие: ' + action }, 400)
+        }
+    } catch (e) {
+        return json({ error: 'Внутренняя ошибка: ' + (e?.message ?? String(e)) }, 500)
+    }
+})
+
+// Вспомогательная функция для JSON-ответа
+function json(data: unknown, status = 200) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+}
