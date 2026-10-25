@@ -627,12 +627,15 @@
             initTheme();
             document.getElementById('login').focus();
 
-            if (localStorage.getItem('finassist-blocked') === '1') {
+            // ★ Сообщение о блокировке
+            const blocked = localStorage.getItem('finassist-blocked');
+            if (blocked) {
                 localStorage.removeItem('finassist-blocked');
                 const err = document.getElementById('error');
                 if (err) {
-                    err.textContent = 'Ваш аккаунт заблокирован администратором';
-                    err.classList.add('error--success'); // или отдельный класс для ошибки
+                    err.textContent = blocked === 'deleted'
+                        ? 'Ваш аккаунт удалён администратором'
+                        : 'Ваш аккаунт заблокирован администратором';
                 }
             }
 
