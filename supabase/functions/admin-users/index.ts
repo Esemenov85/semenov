@@ -128,7 +128,8 @@ serve(async (req) => {
                 return json({ error: 'Неизвестное действие: ' + action }, 400)
         }
     } catch (e) {
-        return json({ error: 'Внутренняя ошибка: ' + (e?.message ?? String(e)) }, 500)
+    const message = e instanceof Error ? e.message : String(e)
+    return json({ error: 'Внутренняя ошибка: ' + message }, 500)
     }
 })
 
