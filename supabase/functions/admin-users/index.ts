@@ -1,50 +1,3 @@
-// // Follow this setup guide to integrate the Deno language server with your editor:
-// // https://deno.land/manual/getting_started/setup_your_environment
-// // This enables autocomplete, go to definition, etc.
-
-// // Setup type definitions for built-in Supabase Runtime APIs
-// import "@supabase/functions-js/edge-runtime.d.ts";
-// import { withSupabase } from "@supabase/server";
-
-// console.log("Hello from Functions!");
-
-// // This endpoint uses 'publishable' | 'secret' access, apiKey is required.
-// // Use publishable for Client-facing, key-validated endpoints
-// // Use secret for Server-to-server, internal calls
-// export default {
-//   fetch: withSupabase({ auth: ["publishable", "secret"] }, async (req, ctx) => {
-//     // Called by another service with a secret key
-//     // ctx.supabaseAdmin bypasses RLS — use for privileged operations
-//     /*
-//     if (ctx.authMode === "secret") {
-//       const { user_id } = await req.json();
-//       const { data } = await ctx.supabaseAdmin.auth.admin.getUserById(user_id);
-
-//       return Response.json({
-//         email: data?.user?.email,
-//       });
-//     }
-//     */
-
-//     const { name } = await req.json();
-
-//     return Response.json({
-//       message: `Hello ${name}!`,
-//     });
-//   }),
-// };
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/admin-users' \
-    --header 'apiKey: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH' \
-    --data '{"name":"Functions"}'
-
-*/
-
 // supabase/functions/admin-users/index.ts
 // Edge Function: управление пользователями из админ-панели
 
@@ -73,15 +26,24 @@ serve(async (req) => {
         }
         const jwt = authHeader.replace('Bearer ', '')
 
-        // 2. Создаём клиент с anon key, чтобы проверить JWT
+        // 2. Создаём клиент с anon key, но с JWT пользователя в заголовке.
+        //    getUser() без аргумента проверит токен через Auth API Supabase.
+        //    Это надёжнее, чем getUser(jwt) на клиенте с anon key.
         const supabaseAuth = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            {
+                global: {
+                    headers: { Authorization: `Bearer ${jwt}` },
+                },
+            }
         )
-        const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(jwt)
+
+        const { data: { user }, error: userError } = await supabaseAuth.auth.getUser()
 
         if (userError || !user) {
-            return json({ error: 'Не удалось проверить пользователя' }, 401)
+            console.error('Auth check failed:', userError?.message)
+            return json({ error: 'Не удалось проверить пользователя: ' + (userError?.message || 'no user') }, 401)
         }
 
         // 3. Проверяем, что это админ
@@ -116,6 +78,7 @@ serve(async (req) => {
                 })
 
                 if (createError) {
+                    console.error('createUser error:', createError)
                     return json({ error: createError.message }, 400)
                 }
 
