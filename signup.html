@@ -81,7 +81,7 @@
             border-radius: 24px;
             padding: 2.5rem 2rem 2rem;
             width: 100%;
-            max-width: 420px;
+            max-width: 460px;
             box-shadow: 0 24px 48px var(--shadow-hover);
             border: 1px solid var(--border);
             animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -122,11 +122,25 @@
             margin-bottom: 2rem;
         }
 
+        .section-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 1.75rem 0 1rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
         .field {
             display: flex;
             flex-direction: column;
             gap: 0.4rem;
-            margin-bottom: 1.1rem;
+            margin-bottom: 1rem;
         }
         .field label {
             font-size: 0.72rem;
@@ -135,17 +149,22 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+        .field label .req {
+            color: var(--accent-p);
+            margin-left: 0.2rem;
+        }
         .field input {
-            padding: 0.85rem 1rem;
+            padding: 0.8rem 1rem;
             border-radius: 12px;
             border: 1.5px solid var(--border-strong);
             background: var(--input-bg);
             color: var(--main);
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-family: inherit;
             font-weight: 500;
             outline: none;
             transition: 0.2s;
+            width: 100%;
         }
         [data-theme="dark"] .field input { color: var(--text); }
         .field input::placeholder { color: var(--text); opacity: 0.6; }
@@ -156,6 +175,12 @@
         [data-theme="dark"] .field input:focus {
             border-color: var(--accent-y);
             box-shadow: 0 0 0 3px rgba(240, 225, 0, 0.15);
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
         }
 
         .field-password { position: relative; }
@@ -202,7 +227,7 @@
             justify-content: center;
             gap: 0.5rem;
             letter-spacing: 0.01em;
-            margin-top: 0.5rem;
+            margin-top: 1rem;
         }
         .btn-submit:hover {
             background: #ffe600;
@@ -269,9 +294,10 @@
         .theme-btn:hover { border-color: var(--accent-y); transform: scale(1.05); }
 
         @media (max-width: 480px) {
-            .signup-card { padding: 2rem 1.5rem 1.5rem; border-radius: 20px; }
+            .signup-card { padding: 2rem 1.5rem 1.5rem; border-radius: 20px; max-width: 100%; }
             .signup-logo { font-size: 1.25rem; }
             .signup-logo-mark { width: 42px; height: 42px; font-size: 1.2rem; }
+            .field-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -286,8 +312,38 @@
         </div>
         <div class="signup-sub">Создайте аккаунт, чтобы начать</div>
 
+        <!-- ========== СЕКЦИЯ 1: ОСНОВНОЕ ========== -->
+        <div class="section-title">Основное</div>
+
+        <div class="field-row">
+            <div class="field">
+                <label for="firstName">Имя <span class="req">*</span></label>
+                <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    placeholder="Иван"
+                    autocomplete="given-name"
+                    minlength="2"
+                    required
+                >
+            </div>
+            <div class="field">
+                <label for="lastName">Фамилия <span class="req">*</span></label>
+                <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    placeholder="Иванов"
+                    autocomplete="family-name"
+                    minlength="2"
+                    required
+                >
+            </div>
+        </div>
+
         <div class="field">
-            <label for="signupEmail">Email</label>
+            <label for="signupEmail">Email <span class="req">*</span></label>
             <input
                 type="email"
                 id="signupEmail"
@@ -299,7 +355,7 @@
         </div>
 
         <div class="field field-password">
-            <label for="signupPassword">Пароль</label>
+            <label for="signupPassword">Пароль <span class="req">*</span></label>
             <input
                 type="password"
                 id="signupPassword"
@@ -319,7 +375,7 @@
         <div class="password-hint">Используйте минимум 6 символов. Рекомендуем — 8+ и цифры.</div>
 
         <div class="field field-password">
-            <label for="signupPasswordConfirm">Повторите пароль</label>
+            <label for="signupPasswordConfirm">Повторите пароль <span class="req">*</span></label>
             <input
                 type="password"
                 id="signupPasswordConfirm"
@@ -335,6 +391,51 @@
                 onclick="togglePasswordVisibility('signupPasswordConfirm', this)"
                 aria-label="Показать пароль"
             >👁️</button>
+        </div>
+
+        <!-- ========== СЕКЦИЯ 2: ДОПОЛНИТЕЛЬНО ========== -->
+        <div class="section-title">Дополнительно</div>
+
+        <div class="field">
+            <label for="phone">Телефон</label>
+            <input
+                type="tel"
+                id="phone"
+                name="phone"
+                placeholder="+7 900 000-00-00"
+                autocomplete="tel"
+            >
+        </div>
+
+        <div class="field-row">
+            <div class="field">
+                <label for="telegram">Telegram</label>
+                <input
+                    type="text"
+                    id="telegram"
+                    name="telegram"
+                    placeholder="@username"
+                >
+            </div>
+            <div class="field">
+                <label for="vk">VK</label>
+                <input
+                    type="text"
+                    id="vk"
+                    name="vk"
+                    placeholder="username"
+                >
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="max">MAX</label>
+            <input
+                type="text"
+                id="max"
+                name="max"
+                placeholder="@username"
+            >
         </div>
 
         <button type="submit" class="btn-submit" id="submitBtn">
@@ -353,8 +454,8 @@
         /* ============================================================
            ★★★ ЗАМЕНИТЕ ЗДЕСЬ ★★★
            ============================================================ */
-        const SUPABASE_URL      = 'https://gwekltncletbpzxnxcxz.supabase.co';   // ← ЗАМЕНИТЕ
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3ZWtsdG5jbGV0YnB6eG54Y3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzQ4NTgsImV4cCI6MjEwNjg1MDg1OH0.AafvpIiBwwxVjBIYkNFOCywsV4XFiEFpOWWP_-mq5JU'; // ← ЗАМЕНИТЕ
+        const SUPABASE_URL      = 'https://gwekltncletbpzxnxcxz.supabase.co';  // ← ваш URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3ZWtsdG5jbGV0YnB6eG54Y3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzQ4NTgsImV4cCI6MjEwNjg1MDg1OH0.AafvpIiBwwxVjBIYkNFOCywsV4XFiEFpOWWP_-mq5JU'; // ← ваш anon key
 
         const { createClient } = supabase;
         const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -405,27 +506,47 @@
            ★ РЕГИСТРАЦИЯ ЧЕРЕЗ SUPABASE ★
            ============================================================ */
         async function doSignup() {
-            const email    = document.getElementById('signupEmail').value.trim();
-            const password = document.getElementById('signupPassword').value;
-            const confirm  = document.getElementById('signupPasswordConfirm').value;
-            const err      = document.getElementById('error');
-            const btn      = document.getElementById('submitBtn');
-            const btnText  = btn.querySelector('.btn-submit__text');
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName  = document.getElementById('lastName').value.trim();
+            const email     = document.getElementById('signupEmail').value.trim();
+            const password  = document.getElementById('signupPassword').value;
+            const confirm   = document.getElementById('signupPasswordConfirm').value;
+            const phone     = document.getElementById('phone').value.trim();
+            const telegram  = document.getElementById('telegram').value.trim();
+            const vk        = document.getElementById('vk').value.trim();
+            const max       = document.getElementById('max').value.trim();
+
+            const err     = document.getElementById('error');
+            const btn     = document.getElementById('submitBtn');
+            const btnText = btn.querySelector('.btn-submit__text');
 
             err.textContent = '';
             err.classList.remove('error--success');
 
-            // Простая валидация
-            if (!email || !password) {
-                err.textContent = 'Заполните все поля';
+            // Валидация
+            if (!firstName || firstName.length < 2) {
+                err.textContent = 'Имя должно быть не короче 2 символов';
+                document.getElementById('firstName').focus();
+                return;
+            }
+            if (!lastName || lastName.length < 2) {
+                err.textContent = 'Фамилия должна быть не короче 2 символов';
+                document.getElementById('lastName').focus();
+                return;
+            }
+            if (!email) {
+                err.textContent = 'Введите email';
+                document.getElementById('signupEmail').focus();
                 return;
             }
             if (password.length < 6) {
                 err.textContent = 'Пароль должен быть не короче 6 символов';
+                document.getElementById('signupPassword').focus();
                 return;
             }
             if (password !== confirm) {
                 err.textContent = 'Пароли не совпадают';
+                document.getElementById('signupPasswordConfirm').focus();
                 return;
             }
 
@@ -434,12 +555,21 @@
             btn.disabled = true;
 
             // ★ Регистрация в Supabase
+            // Все дополнительные поля уходят в user_metadata,
+            // откуда триггер handle_new_user() подставит их в profiles
             const { data, error } = await sb.auth.signUp({
                 email: email,
                 password: password,
                 options: {
-                    // ★ Куда вернуть пользователя после подтверждения email (если оно включено)
                     emailRedirectTo: window.location.origin + '/app.html',
+                    data: {
+                        first_name: firstName,
+                        last_name:  lastName,
+                        phone:      phone    || null,
+                        telegram:   telegram || null,
+                        vk:         vk       || null,
+                        max:        max      || null,
+                    },
                 },
             });
 
@@ -448,7 +578,6 @@
                 btnText.textContent = 'Создать аккаунт';
                 btn.disabled = false;
 
-                // Понятные сообщения
                 if (error.message.includes('already registered') || error.message.includes('User already registered')) {
                     err.textContent = 'Пользователь с таким email уже зарегистрирован. Войдите или восстановите пароль.';
                 } else if (error.message.includes('Password should be at least')) {
@@ -474,7 +603,7 @@
                 return;
             }
 
-            // Если Confirm email ВКЛЮЧЕН — сессии нет, пользователь должен подтвердить email
+            // Если Confirm email ВКЛЮЧЕН — сессии нет
             btn.classList.remove('loading');
             btnText.textContent = 'Создать аккаунт';
             btn.disabled = false;
@@ -487,7 +616,7 @@
            ============================================================ */
         document.addEventListener('DOMContentLoaded', async function () {
             initTheme();
-            document.getElementById('signupEmail').focus();
+            document.getElementById('firstName').focus();
 
             // Если уже авторизован — сразу в приложение
             const { data: { session } } = await sb.auth.getSession();
