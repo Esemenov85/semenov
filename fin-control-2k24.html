@@ -965,15 +965,35 @@
         async function toggleDelete(userId, del) {
             if (del && !confirm('Пометить пользователя как удалённого? Он не сможет войти.')) return;
 
-            const { error } = await sb
-                .from('profiles')
-                .update({ is_deleted: del, updated_at: new Date().toISOString() })
-                .eq('id', userId);
-
-            if (error) {
-                toast('Ошибка: ' + error.message, 'error');
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                toast('Сессия истекла, войдите снова', 'error');
                 return;
             }
+
+            const response = await fetch(
+                `${SUPABASE_URL}/functions/v1/admin-users`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                    },
+                    body: JSON.stringify({
+                        action: 'soft_delete_user',
+                        payload: { user_id: userId, deleted: del },
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || result.error) {
+                toast('Ошибка: ' + (result.error || 'Неизвестная'), 'error');
+                return;
+            }
+
             toast(del ? 'Пользователь помечен как удалённый' : 'Пользователь восстановлен');
             await loadUsers();
         }

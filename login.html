@@ -563,15 +563,13 @@
                 btnText.textContent = 'Войти';
                 btn.disabled = false;
 
-                // Понятные русские сообщения вместо стандартных
-                if (error.message.includes('Invalid login credentials')) {
+                if (error.message.includes('User is banned') || error.message.includes('banned')) {
+                    err.textContent = 'Ваш аккаунт заблокирован или удалён администратором';
+                } else if (error.message.includes('Invalid login credentials')) {
                     err.textContent = 'Неверный email или пароль';
-                } else if (error.message.includes('Email not confirmed')) {
-                    err.textContent = 'Email не подтверждён. Проверьте почту.';
                 } else {
                     err.textContent = 'Ошибка входа: ' + error.message;
                 }
-                console.error('Supabase login error:', error);
                 return;
             }
 

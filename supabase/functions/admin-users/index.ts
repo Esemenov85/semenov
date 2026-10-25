@@ -124,6 +124,33 @@ serve(async (req) => {
                 return json({ success: true })
             }
 
+            case 'soft_delete_user': {
+                const { user_id, deleted } = payload
+                if (!user_id) {
+                    return json({ error: 'Нужен user_id' }, 400)
+                }
+
+                // При удалении — бан на 100 лет. При восстановлении — снимаем бан.
+                const banDuration = deleted ? '876000h' : 'none'
+
+                const { error } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
+                    ban_duration: banDuration,
+                })
+
+                if (error) {
+                    console.error('soft_delete error:', error)
+                    return json({ error: error.message }, 400)
+                }
+
+                // Дублируем флаг в profiles
+                await supabaseAdmin
+                    .from('profiles')
+                    .update({ is_deleted: deleted, updated_at: new Date().toISOString() })
+                    .eq('id', user_id)
+
+                return json({ success: true })
+            }
+
             default:
                 return json({ error: 'Неизвестное действие: ' + action }, 400)
         }
