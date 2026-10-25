@@ -929,15 +929,35 @@
            ДЕЙСТВИЯ
            ============================================================ */
         async function toggleBlock(userId, block) {
-            const { error } = await sb
-                .from('profiles')
-                .update({ is_blocked: block, updated_at: new Date().toISOString() })
-                .eq('id', userId);
-
-            if (error) {
-                toast('Ошибка: ' + error.message, 'error');
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                toast('Сессия истекла, войдите снова', 'error');
                 return;
             }
+
+            const response = await fetch(
+                `${SUPABASE_URL}/functions/v1/admin-users`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                    },
+                    body: JSON.stringify({
+                        action: 'ban_user',
+                        payload: { user_id: userId, ban: block },
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || result.error) {
+                toast('Ошибка: ' + (result.error || 'Неизвестная'), 'error');
+                return;
+            }
+
             toast(block ? 'Пользователь заблокирован' : 'Пользователь разблокирован');
             await loadUsers();
         }
