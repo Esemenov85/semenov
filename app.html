@@ -1574,10 +1574,9 @@
                 return;
             }
 
-            // Проверяем, не забанен ли пользователь
+        // ★ Проверяем, не забанен ли пользователь в Supabase Auth
             const { data: { user } } = await sb.auth.getUser();
 
-            // Supabase возвращает banned_until в user, если бан активен
             if (user && user.banned_until) {
                 const banDate = new Date(user.banned_until);
                 if (banDate > new Date()) {
@@ -1586,6 +1585,20 @@
                     window.location.replace('login.html');
                     return;
                 }
+            }
+
+            // ★ Проверяем is_blocked и is_deleted в profiles
+            const { data: profile } = await sb
+                .from('profiles')
+                .select('is_blocked, is_deleted')
+                .eq('id', session.user.id)
+                .single();
+
+            if (profile && (profile.is_blocked || profile.is_deleted)) {
+                await sb.auth.signOut();
+                localStorage.setItem('finassist-blocked', profile.is_deleted ? 'deleted' : '1');
+                window.location.replace('login.html');
+                return;
             }
 
             // Сессия есть — рендерим данные и показываем интерфейс
