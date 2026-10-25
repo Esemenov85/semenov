@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление пользователями</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --main:      #0B3C49;
+            --bg:        #CBD2D0;
+            --text:      #6A8D92;
+            --accent-y:  #F0E100;
+            --accent-p:  #731963;
+            --white:     #ffffff;
+            --card:      #ffffff;
+            --border:    rgba(106, 141, 146, 0.12);
+            --border-strong: rgba(106, 141, 146, 0.25);
+            --shadow:    rgba(11, 60, 73, 0.07);
+            --shadow-hover: rgba(11, 60, 73, 0.12);
+            --input-bg:  #CBD2D0;
+            --success:   #1a7f37;
+            --danger:    #cf222e;
+            --warning:   #9a6700;
+        }
+        [data-theme="dark"] {
+            --main:      #F0E100;
+            --bg:        #0a181d;
+            --text:      #8FAEB4;
+            --accent-y:  #F0E100;
+            --accent-p:  #C43FAF;
+            --white:     #142830;
+            --card:      #142830;
+            --border:    rgba(143, 174, 180, 0.15);
+            --border-strong: rgba(143, 174, 180, 0.3);
+            --shadow:    rgba(0, 0, 0, 0.4);
+            --shadow-hover: rgba(0, 0, 0, 0.6);
+            --input-bg:  #0f2229;
+            --success:   #3fb950;
+            --danger:    #f85149;
+            --warning:   #d29922;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--main);
+            min-height: 100vh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* ========== ЭКРАН ВХОДА ========== */
+        .login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .login-box {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 48px var(--shadow-hover);
+            border: 1px solid var(--border);
+        }
+        .login-box h1 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+            color: var(--main);
+        }
+        [data-theme="dark"] .login-box h1 { color: var(--accent-y); }
+        .login-box p {
+            font-size: 0.85rem;
+            color: var(--text);
+            margin-bottom: 1.75rem;
+        }
+        .login-box .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+        .login-box label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .login-box input {
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--input-bg);
+            color: var(--main);
+            font-size: 0.95rem;
+            font-family: inherit;
+            font-weight: 500;
+            outline: none;
+            transition: 0.2s;
+            width: 100%;
+        }
+        [data-theme="dark"] .login-box input { color: var(--text); }
+        .login-box input:focus {
+            border-color: var(--main);
+            box-shadow: 0 0 0 3px rgba(11, 60, 73, 0.12);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 11px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+        .btn--full { width: 100%; }
+        .btn--primary {
+            background: var(--accent-y);
+            color: #0B3C49;
+            box-shadow: 0 4px 14px rgba(240, 225, 0, 0.35);
+        }
+        .btn--primary:hover { background: #ffe600; }
+        .btn--github {
+            background: #24292f;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+        .btn--github:hover { background: #1a1e23; }
+        .btn--ghost {
+            background: var(--card);
+            color: var(--main);
+            border: 1.5px solid var(--border-strong);
+        }
+        .btn--ghost:hover { border-color: var(--accent-p); color: var(--accent-p); }
+        .btn--sm {
+            padding: 0.35rem 0.65rem;
+            font-size: 0.72rem;
+            border-radius: 7px;
+        }
+        .btn--success { background: var(--success); color: #fff; }
+        .btn--success:hover { opacity: 0.85; }
+        .btn--danger { background: var(--danger); color: #fff; }
+        .btn--danger:hover { opacity: 0.85; }
+        .btn--warning { background: var(--warning); color: #fff; }
+        .btn--warning:hover { opacity: 0.85; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1.25rem 0;
+            color: var(--text);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .login-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 0.9rem;
+            min-height: 1.2em;
+            text-align: center;
+        }
+
+        /* ========== ЭКРАН АДМИНКИ ========== */
+        .admin-screen { display: none; }
+        .admin-screen.active { display: block; }
+
+        .admin-header {
+            background: var(--main);
+            color: var(--bg);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 20px var(--shadow-hover);
+        }
+        [data-theme="dark"] .admin-header { background: #061e25; }
+        .admin-header h1 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--white);
+        }
+        [data-theme="dark"] .admin-header h1 { color: var(--accent-y); }
+        .admin-header__user {
+            font-size: 0.82rem;
+            opacity: 0.8;
+            margin-right: 0.75rem;
+        }
+        .admin-header__actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .admin-content {
+            padding: 1.75rem 2rem 3rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Счётчики */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+        .stat-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.1rem 1.25rem;
+            box-shadow: 0 4px 14px var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .stat-card__label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.3rem;
+        }
+        .stat-card__value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--main);
+            letter-spacing: -0.02em;
+        }
+        [data-theme="dark"] .stat-card__value { color: var(--accent-y); }
+
+        /* Панели */
+        .panel {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 1.5rem;
+            box-shadow: 0 6px 18px var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+        .panel__head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .panel__title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--main);
+        }
+        [data-theme="dark"] .panel__title { color: var(--accent-y); }
+
+        /* Табы фильтра */
+        .filter-tabs {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--input-bg);
+            border-radius: 10px;
+            padding: 3px;
+        }
+        .filter-tabs button {
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .filter-tabs button.active {
+            background: var(--accent-y);
+            color: #0B3C49;
+        }
+
+        .search-input {
+            padding: 0.5rem 0.85rem;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--input-bg);
+            color: var(--main);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            min-width: 220px;
+        }
+        [data-theme="dark"] .search-input { color: var(--text); }
+        .search-input:focus { border-color: var(--main); }
+
+        /* Таблица */
+        .users-table-wrap {
+            overflow-x: auto;
+            margin: 0 -0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            min-width: 1100px;
+        }
+        thead th {
+            text-align: left;
+            padding: 0.7rem 0.6rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 2px solid var(--border-strong);
+            white-space: nowrap;
+        }
+        tbody td {
+            padding: 0.75rem 0.6rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--main);
+            font-weight: 500;
+            vertical-align: middle;
+        }
+        [data-theme="dark"] tbody td { color: var(--text); }
+        tbody tr:hover { background: rgba(106, 141, 146, 0.05); }
+        [data-theme="dark"] tbody tr:hover { background: rgba(240, 225, 0, 0.05); }
+
+        .user-email {
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+        .user-socials {
+            font-size: 0.72rem;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 0.2rem 0.55rem;
+            border-radius: 40px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .badge--active { background: rgba(26, 127, 55, 0.15); color: var(--success); }
+        .badge--blocked { background: rgba(207, 34, 46, 0.15); color: var(--danger); }
+        .badge--deleted { background: rgba(154, 103, 0, 0.15); color: var(--warning); }
+        .badge--admin { background: rgba(115, 25, 99, 0.15); color: var(--accent-p); }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        /* Форма создания */
+        .create-form {
+            display: none;
+        }
+        .create-form.open { display: block; }
+
+        .create-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.85rem;
+        }
+        .create-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .create-field label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .create-field label .req { color: var(--accent-p); }
+        .create-field input {
+            padding: 0.6rem 0.8rem;
+            border-radius: 9px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--input-bg);
+            color: var(--main);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        [data-theme="dark"] .create-field input { color: var(--text); }
+        .create-field input:focus { border-color: var(--main); }
+
+        .create-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            background: var(--main);
+            color: var(--bg);
+            font-weight: 700;
+            font-size: 0.85rem;
+            box-shadow: 0 12px 32px var(--shadow-hover);
+            z-index: 1000;
+            transform: translateY(120%);
+            transition: transform 0.3s ease;
+        }
+        .toast.show { transform: translateY(0); }
+        .toast--error { background: var(--danger); color: #fff; }
+        .toast--success { background: var(--success); color: #fff; }
+
+        .empty-row {
+            text-align: center;
+            padding: 2rem !important;
+            color: var(--text);
+            font-style: italic;
+        }
+
+        .theme-btn {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 10;
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1.5px solid var(--border-strong);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .theme-btn:hover { border-color: var(--accent-y); transform: scale(1.05); }
+
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 900px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .create-grid { grid-template-columns: 1fr 1fr; }
+            .admin-content { padding: 1.25rem; }
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .create-grid { grid-template-columns: 1fr; }
+            .admin-header { padding: 1rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
+            .admin-header__actions { justify-content: space-between; }
+            .panel { padding: 1rem; }
+            .search-input { min-width: 0; width: 100%; }
+            .panel__head { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Переключить тему">🌙</button>
+
+    <!-- ========== ЭКРАН ВХОДА ========== -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h1>Управление пользователями</h1>
+            <p>Доступ только для администратора</p>
+
+            <button class="btn btn--github btn--full" onclick="doOAuth('github')">
+                <span>⚫</span> Войти через GitHub
+            </button>
+
+            <div class="divider">или</div>
+
+            <form onsubmit="event.preventDefault(); doLogin();">
+                <div class="field">
+                    <label for="adminEmail">Email</label>
+                    <input type="email" id="adminEmail" placeholder="admin@example.com" required>
+                </div>
+                <div class="field">
+                    <label for="adminPassword">Пароль</label>
+                    <input type="password" id="adminPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn--primary btn--full" id="adminLoginBtn">
+                    Войти
+                </button>
+            </form>
+
+            <div class="login-error" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- ========== ЭКРАН АДМИНКИ ========== -->
+    <div class="admin-screen" id="adminScreen">
+
+        <div class="admin-header">
+            <h1>⚙️ Управление пользователями</h1>
+            <div class="admin-header__actions">
+                <span class="admin-header__user" id="adminEmailDisplay"></span>
+                <button class="btn btn--ghost btn--sm" onclick="logoutAdmin()">Выйти</button>
+            </div>
+        </div>
+
+        <div class="admin-content">
+
+            <!-- Счётчики -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card__label">Всего</div>
+                    <div class="stat-card__value" id="statTotal">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__label">Активных</div>
+                    <div class="stat-card__value" id="statActive">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__label">Заблокировано</div>
+                    <div class="stat-card__value" id="statBlocked">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__label">Удалено</div>
+                    <div class="stat-card__value" id="statDeleted">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__label">Операций</div>
+                    <div class="stat-card__value" id="statOperations">0</div>
+                </div>
+            </div>
+
+            <!-- Создание пользователя -->
+            <div class="panel">
+                <div class="panel__head">
+                    <h2 class="panel__title">Создать пользователя</h2>
+                    <button class="btn btn--primary btn--sm" onclick="toggleCreateForm()">➕ Показать форму</button>
+                </div>
+                <div class="create-form" id="createForm">
+                    <form onsubmit="event.preventDefault(); createUser();">
+                        <div class="create-grid">
+                            <div class="create-field">
+                                <label>Email <span class="req">*</span></label>
+                                <input type="email" id="newEmail" required>
+                            </div>
+                            <div class="create-field">
+                                <label>Пароль <span class="req">*</span></label>
+                                <input type="password" id="newPassword" minlength="6" required>
+                            </div>
+                            <div class="create-field">
+                                <label>Имя <span class="req">*</span></label>
+                                <input type="text" id="newFirstName" minlength="2" required>
+                            </div>
+                            <div class="create-field">
+                                <label>Фамилия <span class="req">*</span></label>
+                                <input type="text" id="newLastName" minlength="2" required>
+                            </div>
+                            <div class="create-field">
+                                <label>Телефон</label>
+                                <input type="tel" id="newPhone">
+                            </div>
+                            <div class="create-field">
+                                <label>Telegram</label>
+                                <input type="text" id="newTelegram" placeholder="@username">
+                            </div>
+                            <div class="create-field">
+                                <label>VK</label>
+                                <input type="text" id="newVk" placeholder="username">
+                            </div>
+                            <div class="create-field">
+                                <label>MAX</label>
+                                <input type="text" id="newMax" placeholder="@username">
+                            </div>
+                        </div>
+                        <div class="create-actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="toggleCreateForm()">Отмена</button>
+                            <button type="submit" class="btn btn--primary btn--sm" id="createBtn">Создать</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Таблица пользователей -->
+            <div class="panel">
+                <div class="panel__head">
+                    <h2 class="panel__title">Пользователи</h2>
+                    <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                        <div class="filter-tabs">
+                            <button class="active" data-filter="all" onclick="setFilter('all', this)">Все</button>
+                            <button data-filter="active" onclick="setFilter('active', this)">Активные</button>
+                            <button data-filter="blocked" onclick="setFilter('blocked', this)">Заблокированные</button>
+                            <button data-filter="deleted" onclick="setFilter('deleted', this)">Удалённые</button>
+                        </div>
+                        <input type="search" class="search-input" id="searchInput" placeholder="Поиск по email или имени" oninput="renderTable()">
+                        <button class="btn btn--ghost btn--sm" onclick="loadUsers()">🔄</button>
+                    </div>
+                </div>
+                <div class="users-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Имя</th>
+                                <th>Фамилия</th>
+                                <th>Телефон</th>
+                                <th>Соцсети</th>
+                                <th>Регистрация</th>
+                                <th>Операций</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="9" class="empty-row">Загрузка…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /* ============================================================
+           ★★★ ЗАМЕНИТЕ ЗДЕСЬ ★★★
+           ============================================================ */
+        const SUPABASE_URL      = 'https://gwekltncletbpzxnxcxz.supabase.co';  // ваш URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3ZWtsdG5jbGV0YnB6eG54Y3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzQ4NTgsImV4cCI6MjEwNjg1MDg1OH0.AafvpIiBwwxVjBIYkNFOCywsV4XFiEFpOWWP_-mq5JU'; // ← ваш anon key
+        const ADMIN_EMAIL       = 'esemenov85@gmail.com';
+
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        /* ============================================================
+           СОСТОЯНИЕ
+           ============================================================ */
+        let allUsers = [];
+        let allOperations = [];
+        let currentFilter = 'all';
+
+        /* ============================================================
+           ТЁМНАЯ ТЕМА
+           ============================================================ */
+        const THEME_KEY = 'finassist-theme';
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeBtn').textContent = '☀️';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('themeBtn').textContent = '🌙';
+            }
+        }
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            applyTheme(newTheme);
+            try { localStorage.setItem(THEME_KEY, newTheme); } catch (e) {}
+        }
+        function initTheme() {
+            let saved = null;
+            try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+            if (saved === 'dark') applyTheme('dark');
+            else if (saved === 'light') applyTheme('light');
+            else {
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+        }
+
+        /* ============================================================
+           TOAST
+           ============================================================ */
+        let toastTimer = null;
+        function toast(message, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = message;
+            el.className = 'toast show' + (type === 'error' ? ' toast--error' : ' toast--success');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                el.classList.remove('show');
+            }, 3000);
+        }
+
+        /* ============================================================
+           ВХОД
+           ============================================================ */
+        async function doOAuth(provider) {
+            const err = document.getElementById('loginError');
+            err.textContent = '';
+
+            const { error } = await sb.auth.signInWithOAuth({
+                provider: provider,
+                options: {
+                    redirectTo: window.location.origin + '/fin-control-2k24.html',
+                },
+            });
+
+            if (error) {
+                err.textContent = 'Ошибка входа: ' + error.message;
+            }
+            // При успехе SDK сам редиректит
+        }
+
+        async function doLogin() {
+            const email    = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const err      = document.getElementById('loginError');
+            const btn      = document.getElementById('adminLoginBtn');
+
+            err.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'Входим…';
+
+            const { data, error } = await sb.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                err.textContent = 'Неверный email или пароль';
+                btn.disabled = false;
+                btn.textContent = 'Войти';
+                return;
+            }
+
+            if (data.user.email !== ADMIN_EMAIL) {
+                await sb.auth.signOut();
+                err.textContent = 'Доступ запрещён: вы не администратор';
+                btn.disabled = false;
+                btn.textContent = 'Войти';
+                return;
+            }
+
+            // Успех — показываем админку
+            showAdmin(data.user);
+        }
+
+        function showAdmin(user) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminScreen').classList.add('active');
+            document.getElementById('adminEmailDisplay').textContent = user.email;
+            loadUsers();
+        }
+
+        async function logoutAdmin() {
+            await sb.auth.signOut();
+            document.getElementById('adminScreen').classList.remove('active');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('loginError').textContent = '';
+        }
+
+        /* ============================================================
+           ЗАГРУЗКА ДАННЫХ
+           ============================================================ */
+        async function loadUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Загрузка…</td></tr>';
+
+            // 1. Загружаем профили
+            const { data: profiles, error: profErr } = await sb
+                .from('profiles')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (profErr) {
+                console.error('Ошибка загрузки профилей:', profErr);
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-row" style="color:var(--danger);">Ошибка загрузки: ${profErr.message}</td></tr>`;
+                return;
+            }
+
+            allUsers = profiles || [];
+
+            // 2. Загружаем операции (для подсчёта)
+            const { data: ops, error: opsErr } = await sb
+                .from('operations')
+                .select('user_id');
+
+            if (opsErr) {
+                console.warn('Операции не загрузились:', opsErr);
+                allOperations = [];
+            } else {
+                allOperations = ops || [];
+            }
+
+            updateStats();
+            renderTable();
+        }
+
+        function updateStats() {
+            const total = allUsers.length;
+            const active = allUsers.filter(u => !u.is_blocked && !u.is_deleted).length;
+            const blocked = allUsers.filter(u => u.is_blocked && !u.is_deleted).length;
+            const deleted = allUsers.filter(u => u.is_deleted).length;
+            const opsCount = allOperations.length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statActive').textContent = active;
+            document.getElementById('statBlocked').textContent = blocked;
+            document.getElementById('statDeleted').textContent = deleted;
+            document.getElementById('statOperations').textContent = opsCount;
+        }
+
+        function setFilter(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tabs button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTable();
+        }
+
+        function getOperationCount(userId) {
+            return allOperations.filter(op => op.user_id === userId).length;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('usersTableBody');
+            const search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+
+            let filtered = allUsers.filter(u => {
+                // Фильтр по статусу
+                if (currentFilter === 'active' && (u.is_blocked || u.is_deleted)) return false;
+                if (currentFilter === 'blocked' && (!u.is_blocked || u.is_deleted)) return false;
+                if (currentFilter === 'deleted' && !u.is_deleted) return false;
+
+                // Поиск
+                if (search) {
+                    const hay = `${u.email || ''} ${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
+                    if (!hay.includes(search)) return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Нет пользователей</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(u => {
+                const statusClass = u.is_deleted ? 'badge--deleted' : (u.is_blocked ? 'badge--blocked' : 'badge--active');
+                const statusText = u.is_deleted ? 'Удалён' : (u.is_blocked ? 'Заблокирован' : 'Активен');
+                const isAdmin = u.email === ADMIN_EMAIL;
+                const opsCount = getOperationCount(u.id);
+
+                const socials = [];
+                if (u.telegram) socials.push(`TG: ${u.telegram}`);
+                if (u.vk) socials.push(`VK: ${u.vk}`);
+                if (u.max) socials.push(`MAX: ${u.max}`);
+
+                const regDate = u.created_at
+                    ? new Date(u.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : '—';
+
+                return `
+                    <tr>
+                        <td class="user-email">
+                            ${u.email || '—'}
+                            ${isAdmin ? '<br><span class="badge badge--admin">Админ</span>' : ''}
+                        </td>
+                        <td>${u.first_name || '—'}</td>
+                        <td>${u.last_name || '—'}</td>
+                        <td>${u.phone || '—'}</td>
+                        <td class="user-socials">${socials.length ? socials.join('<br>') : '—'}</td>
+                        <td style="white-space:nowrap;">${regDate}</td>
+                        <td style="text-align:center; font-weight:700;">${opsCount}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <div class="actions-cell">
+                                ${!isAdmin ? `
+                                    <button class="btn btn--sm ${u.is_blocked ? 'btn--success' : 'btn--warning'}"
+                                            onclick="toggleBlock('${u.id}', ${!u.is_blocked})"
+                                            ${u.is_deleted ? 'disabled' : ''}>
+                                        ${u.is_blocked ? 'Разблок.' : 'Блок.'}
+                                    </button>
+                                    <button class="btn btn--sm ${u.is_deleted ? 'btn--success' : 'btn--danger'}"
+                                            onclick="toggleDelete('${u.id}', ${!u.is_deleted})">
+                                        ${u.is_deleted ? 'Восст.' : 'Удалить'}
+                                    </button>
+                                    <button class="btn btn--sm btn--ghost"
+                                            onclick="clearOperations('${u.id}', '${u.email}')"
+                                            ${opsCount === 0 ? 'disabled' : ''}>
+                                        🗑 Транз.
+                                    </button>
+                                ` : '<span style="color:var(--text); font-size:0.75rem;">—</span>'}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /* ============================================================
+           ДЕЙСТВИЯ
+           ============================================================ */
+        async function toggleBlock(userId, block) {
+            const { error } = await sb
+                .from('profiles')
+                .update({ is_blocked: block, updated_at: new Date().toISOString() })
+                .eq('id', userId);
+
+            if (error) {
+                toast('Ошибка: ' + error.message, 'error');
+                return;
+            }
+            toast(block ? 'Пользователь заблокирован' : 'Пользователь разблокирован');
+            await loadUsers();
+        }
+
+        async function toggleDelete(userId, del) {
+            if (del && !confirm('Пометить пользователя как удалённого? Он не сможет войти.')) return;
+
+            const { error } = await sb
+                .from('profiles')
+                .update({ is_deleted: del, updated_at: new Date().toISOString() })
+                .eq('id', userId);
+
+            if (error) {
+                toast('Ошибка: ' + error.message, 'error');
+                return;
+            }
+            toast(del ? 'Пользователь помечен как удалённый' : 'Пользователь восстановлен');
+            await loadUsers();
+        }
+
+        async function clearOperations(userId, email) {
+            if (!confirm(`Удалить все операции пользователя ${email}? Действие необратимо.`)) return;
+
+            const { error } = await sb
+                .from('operations')
+                .delete()
+                .eq('user_id', userId);
+
+            if (error) {
+                toast('Ошибка: ' + error.message, 'error');
+                return;
+            }
+            toast('Операции удалены');
+            await loadUsers();
+        }
+
+        function toggleCreateForm() {
+            const form = document.getElementById('createForm');
+            form.classList.toggle('open');
+            if (form.classList.contains('open')) {
+                document.getElementById('newEmail').focus();
+            }
+        }
+
+        async function createUser() {
+            const email      = document.getElementById('newEmail').value.trim();
+            const password   = document.getElementById('newPassword').value;
+            const firstName  = document.getElementById('newFirstName').value.trim();
+            const lastName   = document.getElementById('newLastName').value.trim();
+            const phone      = document.getElementById('newPhone').value.trim();
+            const telegram   = document.getElementById('newTelegram').value.trim();
+            const vk         = document.getElementById('newVk').value.trim();
+            const max        = document.getElementById('newMax').value.trim();
+            const btn        = document.getElementById('createBtn');
+
+            if (!email || !password || !firstName || !lastName) {
+                toast('Заполните обязательные поля', 'error');
+                return;
+            }
+            if (password.length < 6) {
+                toast('Пароль минимум 6 символов', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Создаём…';
+
+            // Вызываем Edge Function
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                toast('Сессия истекла, войдите снова', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Создать';
+                return;
+            }
+
+            const response = await fetch(
+                `${SUPABASE_URL}/functions/v1/admin-users`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                    },
+                    body: JSON.stringify({
+                        action: 'create_user',
+                        payload: {
+                            email, password, first_name: firstName, last_name: lastName,
+                            phone: phone || null, telegram: telegram || null,
+                            vk: vk || null, max: max || null,
+                        },
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            btn.disabled = false;
+            btn.textContent = 'Создать';
+
+            if (!response.ok || result.error) {
+                toast('Ошибка: ' + (result.error || 'Неизвестная'), 'error');
+                return;
+            }
+
+            toast('Пользователь создан');
+            // Очищаем форму
+            ['newEmail', 'newPassword', 'newFirstName', 'newLastName', 'newPhone', 'newTelegram', 'newVk', 'newMax']
+                .forEach(id => document.getElementById(id).value = '');
+            toggleCreateForm();
+            await loadUsers();
+        }
+
+        /* ============================================================
+           ИНИЦИАЛИЗАЦИЯ
+           ============================================================ */
+        document.addEventListener('DOMContentLoaded', async function () {
+            initTheme();
+
+            // Проверяем сессию
+            const { data: { session } } = await sb.auth.getSession();
+
+            if (session && session.user) {
+                if (session.user.email === ADMIN_EMAIL) {
+                    showAdmin(session.user);
+                } else {
+                    // Не админ — выкидываем
+                    await sb.auth.signOut();
+                    document.getElementById('loginError').textContent = 'Доступ запрещён: вы не администратор';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
