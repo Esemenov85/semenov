@@ -1574,6 +1574,20 @@
                 return;
             }
 
+            // Проверяем, не забанен ли пользователь
+            const { data: { user } } = await sb.auth.getUser();
+
+            // Supabase возвращает banned_until в user, если бан активен
+            if (user && user.banned_until) {
+                const banDate = new Date(user.banned_until);
+                if (banDate > new Date()) {
+                    await sb.auth.signOut();
+                    localStorage.setItem('finassist-blocked', '1');
+                    window.location.replace('login.html');
+                    return;
+                }
+            }
+
             // Сессия есть — рендерим данные и показываем интерфейс
             renderCategories('desktopCategoryList');
             renderStores('desktopStoreList');
