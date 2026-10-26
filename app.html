@@ -1324,6 +1324,31 @@
         </button>
     </nav>
 
+    <div class="add-sheet-overlay" id="addSheetOverlay" onclick="closeAddSheet(event)">
+        <div class="add-sheet" onclick="event.stopPropagation()">
+            <div class="add-sheet__handle"></div>
+            <h3 class="add-sheet__title">Что добавить?</h3>
+
+            <button class="add-sheet__option" onclick="closeAddSheet(); goToPage('receipts')">
+                <div class="add-sheet__icon add-sheet__icon--yellow">🧾</div>
+                <div class="add-sheet__body">
+                    <div class="add-sheet__name">Загрузить чек</div>
+                    <div class="add-sheet__desc">Сфотографируйте чек — мы распознаем данные</div>
+                </div>
+            </button>
+
+            <button class="add-sheet__option" onclick="closeAddSheet(); openManualOperation()">
+                <div class="add-sheet__icon add-sheet__icon--purple">✍️</div>
+                <div class="add-sheet__body">
+                    <div class="add-sheet__name">Добавить вручную</div>
+                    <div class="add-sheet__desc">Внести расход или доход</div>
+                </div>
+            </button>
+
+            <button class="add-sheet__cancel" onclick="closeAddSheet()">Отмена</button>
+        </div>
+    </div>
+
     <script>
         /* ============================================================
            ★★★ ЗАМЕНИТЕ ЗДЕСЬ ★★★
