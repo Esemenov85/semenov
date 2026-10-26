@@ -1387,6 +1387,157 @@
             window.location.replace('login.html');
         }
 
+        /* ============================================================
+        ★ РАСЧЁТ СТАТИСТИКИ ИЗ ОПЕРАЦИЙ ★
+        ============================================================ */
+
+        // Проверяет, попадает ли операция в текущий месяц
+        function isCurrentMonth(dateStr) {
+            if (!dateStr) return false;
+            const parts = dateStr.split('.');
+            if (parts.length !== 3) return false;
+            const [day, month, year] = parts.map(Number);
+            const now = new Date();
+            return day >= 1 && month === (now.getMonth() + 1) && year === now.getFullYear();
+        }
+
+        // Проверяет, попадает ли операция в текущую неделю
+        function isCurrentWeek(dateStr) {
+            if (!dateStr) return false;
+            const parts = dateStr.split('.');
+            if (parts.length !== 3) return false;
+            const [day, month, year] = parts.map(Number);
+            const opDate = new Date(year, month - 1, day);
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay() + 1); // понедельник
+            startOfWeek.setHours(0, 0, 0, 0);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            return opDate >= startOfWeek && opDate <= endOfWeek;
+        }
+
+        // Проверяет, попадает ли операция в текущий год
+        function isCurrentYear(dateStr) {
+            if (!dateStr) return false;
+            const parts = dateStr.split('.');
+            if (parts.length !== 3) return false;
+            const year = Number(parts[2]);
+            return year === new Date().getFullYear();
+        }
+
+        // Фильтр по периоду
+        function filterByPeriod(ops, period) {
+            if (period === 'week')  return ops.filter(op => isCurrentWeek(op.date));
+            if (period === 'month') return ops.filter(op => isCurrentMonth(op.date));
+            if (period === 'year')  return ops.filter(op => isCurrentYear(op.date));
+            return ops;
+        }
+
+        // Пересчёт категорий из операций за месяц
+        function computeCategories(ops) {
+            const monthOps = ops.filter(op => isCurrentMonth(op.date) && op.category !== 'Доход');
+            const totals = {};
+
+            monthOps.forEach(op => {
+                const cat = op.category || 'Прочее';
+                totals[cat] = (totals[cat] || 0) + Math.abs(op.amount);
+            });
+
+            const totalSum = Object.values(totals).reduce((a, b) => a + b, 0);
+
+            return Object.entries(totals)
+                .map(([name, amount]) => {
+                    const meta = CATEGORY_META[name] || { color: '#6A8D92', icon: '📦' };
+                    return {
+                        name,
+                        amount,
+                        percent: totalSum > 0 ? Math.round(amount / totalSum * 100) : 0,
+                        color: meta.color,
+                        icon: meta.icon,
+                    };
+                })
+                .sort((a, b) => b.amount - a.amount);
+        }
+
+        // Пересчёт магазинов из операций за месяц
+        function computeStores(ops) {
+            const monthOps = ops.filter(op => isCurrentMonth(op.date) && op.category !== 'Доход');
+            const totals = {};
+
+            monthOps.forEach(op => {
+                // Из описания берём первую часть до « — »
+                const storeName = (op.desc || '').split(' — ')[0].trim();
+                if (!storeName) return;
+
+                if (!totals[storeName]) {
+                    totals[storeName] = { amount: 0, count: 0, category: op.category };
+                }
+                totals[storeName].amount += Math.abs(op.amount);
+                totals[storeName].count += 1;
+            });
+
+            return Object.entries(totals)
+                .map(([name, data]) => ({
+                    name,
+                    category: data.category,
+                    amount: data.amount,
+                    count: data.count,
+                    icon: (CATEGORY_META[data.category] || { icon: '📦' }).icon,
+                }))
+                .sort((a, b) => b.amount - a.amount)
+                .slice(0, 10); // топ-10
+        }
+
+        // Пересчёт KPI из операций
+        function computeKPI(ops) {
+            const monthOps = ops.filter(op => isCurrentMonth(op.date));
+
+            const expenses = monthOps
+                .filter(op => op.amount < 0)
+                .reduce((sum, op) => sum + Math.abs(op.amount), 0);
+
+            const incomes = monthOps
+                .filter(op => op.amount > 0)
+                .reduce((sum, op) => sum + op.amount, 0);
+
+            return {
+                expenses,
+                incomes,
+                savings: incomes - expenses,
+                operationsCount: monthOps.length,
+            };
+        }
+
+        // Пересчёт данных для графика
+        function computeChartData(ops) {
+            const result = {};
+
+            ['week', 'month', 'year'].forEach(period => {
+                const filtered = filterByPeriod(ops, period).filter(op => op.amount < 0);
+                const total = filtered.reduce((sum, op) => sum + Math.abs(op.amount), 0);
+                const count = filtered.length;
+
+                let avg = '—';
+                if (period === 'week' && count > 0) avg = Math.round(total / 7);
+                if (period === 'month' && count > 0) avg = Math.round(total / new Date().getDate());
+                if (period === 'year' && count > 0) avg = Math.round(total / 365);
+
+                const max = filtered.length > 0 ? Math.max(...filtered.map(op => Math.abs(op.amount))) : 0;
+                const min = filtered.length > 0 ? Math.min(...filtered.map(op => Math.abs(op.amount))) : 0;
+
+                result[period] = {
+                    value: '₽ ' + total.toLocaleString('ru-RU'),
+                    avg: avg === '—' ? '—' : '₽ ' + avg.toLocaleString('ru-RU'),
+                    max: max === 0 ? '—' : '₽ ' + max.toLocaleString('ru-RU'),
+                    min: min === 0 ? '—' : '₽ ' + min.toLocaleString('ru-RU'),
+                };
+            });
+
+            return result;
+        }
+
         /* ========== РЕНДЕР ========== */
         function renderCategories(containerId) {
             const el = document.getElementById(containerId);
