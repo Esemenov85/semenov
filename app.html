@@ -1645,6 +1645,18 @@
             const ops = await loadOperations();
             window._operationsCache = ops;
 
+            // ★ Пересчитываем статистику из операций
+            categories = computeCategories(ops);
+            stores = computeStores(ops);
+
+            // Перерисовываем всё, что зависит от операций
+            renderCategories('desktopCategoryList');
+            renderCategories('fullCategoryList');
+            renderStores('desktopStoreList');
+            renderStores('fullStoreList');
+            updateKPICards(ops);
+
+            // Рендерим таблицу
             if (ops.length === 0) {
                 tbody.innerHTML = `
                     <tr>
