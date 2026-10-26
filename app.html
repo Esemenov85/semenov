@@ -2021,6 +2021,32 @@
                 greetingEl.textContent = greeting;
             }
         }
+
+        function openAddSheet() {
+            document.getElementById('addSheetOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddSheet(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('addSheetOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function openManualOperation() {
+            // Переходим на страницу операций и открываем форму добавления
+            goToPage('operations');
+            // Небольшая задержка, чтобы страница успела переключиться
+            setTimeout(() => {
+                const form = document.getElementById('opFormPanel');
+                if (form && !form.classList.contains('open')) {
+                    toggleOpForm();
+                }
+                // Скроллим к форме
+                const formEl = document.getElementById('opFormPanel');
+                if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
         
         /* ========== ИНИЦИАЛИЗАЦИЯ ========== */
         document.addEventListener('DOMContentLoaded', async function () {
