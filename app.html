@@ -1306,11 +1306,22 @@
 
     <!-- Мобильная нижняя навигация -->
     <nav class="mobile-nav">
-        <button class="mobile-nav__item active" data-page="dashboard" onclick="goToPage('dashboard', this)"><span class="mobile-nav__icon">🏠</span><span class="mobile-nav__label">Главная</span></button>
-        <button class="mobile-nav__item" data-page="operations" onclick="goToPage('operations', this)"><span class="mobile-nav__icon">📋</span><span class="mobile-nav__label">Операции</span></button>
-        <button class="mobile-nav__item mobile-nav__item--center" data-page="receipts" onclick="goToPage('receipts', this)"><span class="mobile-nav__icon">➕</span><span class="mobile-nav__label">Чек</span></button>
-        <button class="mobile-nav__item" data-page="categories" onclick="goToPage('categories', this)"><span class="mobile-nav__icon">📊</span><span class="mobile-nav__label">Статистика</span></button>
-        <button class="mobile-nav__item" data-page="settings" onclick="goToPage('settings', this)"><span class="mobile-nav__icon">⚙️</span><span class="mobile-nav__label">Настройки</span></button>
+        <button class="mobile-nav__item active" data-page="dashboard" onclick="goToPage('dashboard', this)">
+            <span class="mobile-nav__icon">🏠</span><span class="mobile-nav__label">Главная</span>
+        </button>
+        <button class="mobile-nav__item" data-page="operations" onclick="goToPage('operations', this)">
+            <span class="mobile-nav__icon">📋</span><span class="mobile-nav__label">Операции</span>
+        </button>
+        <button class="mobile-nav__item mobile-nav__item--center" data-page="receipts" onclick="goToPage('receipts', this)">
+            <span class="mobile-nav__icon">➕</span>
+            <!-- <span class="mobile-nav__label">Чек</span> -->
+        </button>
+        <button class="mobile-nav__item" data-page="categories" onclick="goToPage('categories', this)">
+            <span class="mobile-nav__icon">📊</span><span class="mobile-nav__label">Статистика</span>
+        </button>
+        <button class="mobile-nav__item" data-page="settings" onclick="goToPage('settings', this)">
+            <span class="mobile-nav__icon">⚙️</span><span class="mobile-nav__label">Настройки</span>
+        </button>
     </nav>
 
     <script>
