@@ -998,7 +998,7 @@
                         </button>
                         <div>
                             <h1 class="topbar__title">Дашборд</h1>
-                            <p class="topbar__subtitle">Обзор ваших финансов за сентябрь 2026</p>
+                            <p class="topbar__subtitle" id="dashboardSubtitle">Обзор ваших финансов</p>
                         </div>
                     </div>
                     <div class="topbar__actions">
@@ -1908,6 +1908,13 @@
             const today = new Date().toISOString().split('T')[0];
             const dateEl = document.getElementById('opDate');
             if (dateEl) dateEl.value = today;
+
+            const subtitle = document.getElementById('dashboardSubtitle');
+            if (subtitle) {
+                const now = new Date();
+                const monthName = getCurrentMonthName();
+                subtitle.textContent = `Обзор ваших финансов за ${monthName} ${now.getFullYear()}`;
+            }
 
             document.body.style.visibility = 'visible';
         });
