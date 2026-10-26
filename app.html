@@ -1887,6 +1887,10 @@
             
             await renderOperationsTable();
 
+            // ★ Обновляем график с реальными данными
+            const currentPeriod = document.querySelector('input[name="chartPeriod"]:checked')?.value || 'month';
+            updateChart(currentPeriod);
+
             const today = new Date().toISOString().split('T')[0];
             const dateEl = document.getElementById('opDate');
             if (dateEl) dateEl.value = today;
