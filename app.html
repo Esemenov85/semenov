@@ -1683,6 +1683,21 @@
             }).join('');
         }
 
+        function updateKPICards(ops) {
+            const kpi = computeKPI(ops);
+
+            // Ищем KPI-карточки по порядку
+            const cards = document.querySelectorAll('#page-dashboard .kpi-card');
+            if (cards.length < 4) return;
+
+            cards[0].querySelector('.kpi-card__value').textContent = '₽ ' + kpi.expenses.toLocaleString('ru-RU');
+            cards[1].querySelector('.kpi-card__value').textContent = '₽ ' + kpi.incomes.toLocaleString('ru-RU');
+            cards[2].querySelector('.kpi-card__value').textContent = '₽ ' + Math.abs(kpi.savings).toLocaleString('ru-RU');
+            cards[3].querySelector('.kpi-card__value').textContent = kpi.operationsCount;
+
+            // Подписи изменений оставляем как есть (они не пересчитываются)
+        }
+
         /* ========== ДОБАВЛЕНИЕ ОПЕРАЦИИ ========== */
         async function addOperation() {
             const dateEl = document.getElementById('opDate');
