@@ -1309,28 +1309,19 @@
         const { createClient } = supabase;
         const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        /* ========== ДАННЫЕ ========== */
-        const categories = [
-            { name: 'Продукты',    amount: 24500, percent: 36, color: '#0B3C49', icon: '🛒' },
-            { name: 'Транспорт',   amount: 11200, percent: 16, color: '#731963', icon: '🚗' },
-            { name: 'Интернет',    amount: 3200,  percent: 5,  color: '#6A8D92', icon: '🌐' },
-            { name: 'Питание',     amount: 14800, percent: 22, color: '#F0E100', icon: '🍽️' },
-            { name: 'Развлечения', amount: 8600,  percent: 12, color: '#0B3C49', icon: '🎬' },
-            { name: 'Прочее',      amount: 6040,  percent: 9,  color: '#6A8D92', icon: '📦' }
-        ];
+        /* ========== КОНСТАНТЫ КАТЕГОРИЙ (только цвета и иконки) ========== */
+        const CATEGORY_META = {
+            'Продукты':    { color: '#0B3C49', icon: '🛒' },
+            'Транспорт':   { color: '#731963', icon: '🚗' },
+            'Интернет':    { color: '#6A8D92', icon: '🌐' },
+            'Питание':     { color: '#F0E100', icon: '🍽️' },
+            'Развлечения': { color: '#0B3C49', icon: '🎬' },
+            'Прочее':      { color: '#6A8D92', icon: '📦' }
+        };
 
-        const stores = [
-            { name: 'Пятёрочка',      category: 'Продукты',  amount: 8400, count: 12, icon: '🛒' },
-            { name: 'Чижик',          category: 'Продукты',  amount: 5200, count: 8,  icon: '🛒' },
-            { name: 'Лента',          category: 'Продукты',  amount: 6900, count: 5,  icon: '🛒' },
-            { name: 'Ашан',           category: 'Продукты',  amount: 4000, count: 3,  icon: '🛒' },
-            { name: 'Кафе «3 чашки»', category: 'Питание',   amount: 6800, count: 14, icon: '☕' },
-            { name: 'АЗС Татнефть',   category: 'Транспорт', amount: 5600, count: 6,  icon: '⛽' },
-            { name: 'АЗС Лукойл',     category: 'Транспорт', amount: 4200, count: 4,  icon: '⛽' }
-        ];
-
-        let operations = [
-        ];
+        /* ========== ДАННЫЕ, КОТОРЫЕ ЗАПОЛНЯЮТСЯ ИЗ ОПЕРАЦИЙ ========== */
+        let categories = [];
+        let stores = [];
 
         const integrations = [
             { title: 'Сбербанк',      text: 'Автоматическая загрузка операций по картам', status: 'connected', statusText: 'Подключено', icon: '🏦', iconClass: 'teal' },
