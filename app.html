@@ -977,11 +977,11 @@
                     <div class="mobile-header__avatar" id="userAvatarMobile">П</div>
                 </div>
                 <div class="mobile-balance">
-                    <div class="mobile-balance__label">Расходы за сентябрь</div>
-                    <div class="mobile-balance__amount">₽ 68 340</div>
+                    <div class="mobile-balance__label" id="mobileBalanceLabel">Расходы за месяц</div>
+                    <div class="mobile-balance__amount" id="mobileBalanceAmount">₽ 0</div>
                     <div class="mobile-balance__row">
-                        <button class="mobile-balance__change" onclick="goToPage('categories')" aria-label="Перейти к статистике">
-                            ▼ 12% к августу
+                        <button class="mobile-balance__change" onclick="goToPage('categories')" aria-label="Перейти к статистике" id="mobileBalanceChange">
+                            —
                         </button>
                         <a href="#" class="mobile-balance__action" onclick="event.preventDefault(); goToPage('operations')">Детали</a>
                     </div>
@@ -1682,16 +1682,30 @@
         function updateKPICards(ops) {
             const kpi = computeKPI(ops);
 
-            // Ищем KPI-карточки по порядку
+            // Десктопные KPI
             const cards = document.querySelectorAll('#page-dashboard .kpi-card');
-            if (cards.length < 4) return;
+            if (cards.length >= 4) {
+                cards[0].querySelector('.kpi-card__value').textContent = '₽ ' + kpi.expenses.toLocaleString('ru-RU');
+                cards[1].querySelector('.kpi-card__value').textContent = '₽ ' + kpi.incomes.toLocaleString('ru-RU');
+                cards[2].querySelector('.kpi-card__value').textContent = '₽ ' + Math.max(0, kpi.savings).toLocaleString('ru-RU');
+                cards[3].querySelector('.kpi-card__value').textContent = kpi.operationsCount;
+            }
 
-            cards[0].querySelector('.kpi-card__value').textContent = '₽ ' + kpi.expenses.toLocaleString('ru-RU');
-            cards[1].querySelector('.kpi-card__value').textContent = '₽ ' + kpi.incomes.toLocaleString('ru-RU');
-            cards[2].querySelector('.kpi-card__value').textContent = '₽ ' + Math.abs(kpi.savings).toLocaleString('ru-RU');
-            cards[3].querySelector('.kpi-card__value').textContent = kpi.operationsCount;
+            // ★ Мобильная плашка
+            const mobileAmount = document.getElementById('mobileBalanceAmount');
+            const mobileLabel = document.getElementById('mobileBalanceLabel');
+            if (mobileAmount) mobileAmount.textContent = '₽ ' + kpi.expenses.toLocaleString('ru-RU');
+            if (mobileLabel) mobileLabel.textContent = 'Расходы за ' + getCurrentMonthName();
+        }
 
-            // Подписи изменений оставляем как есть (они не пересчитываются)
+        function getCurrentMonthName() {
+            const months = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+                            'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+            const m = new Date().getMonth();
+            // Возвращаем в родительном падеже: «за январь», «за февраль»...
+            const genitive = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                            'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+            return genitive[m];
         }
 
         /* ========== ДОБАВЛЕНИЕ ОПЕРАЦИИ ========== */
