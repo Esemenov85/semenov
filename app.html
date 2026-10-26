@@ -1751,14 +1751,19 @@
                 void pathEl.offsetWidth;
                 pathEl.style.animation = 'draw 8s ease infinite';
             }
-            if (valueEl) valueEl.textContent = chartData[period].value;
+
+            // ★ Пересчитываем данные графика из реальных операций
+            const ops = window._operationsCache || [];
+            const realChartData = computeChartData(ops);
+
+            if (valueEl) valueEl.textContent = realChartData[period].value;
 
             const avgEl = document.getElementById('chartAvg');
             const maxEl = document.getElementById('chartMax');
             const minEl = document.getElementById('chartMin');
-            if (avgEl) avgEl.textContent = chartData[period].avg;
-            if (maxEl) maxEl.textContent = chartData[period].max;
-            if (minEl) minEl.textContent = chartData[period].min;
+            if (avgEl) avgEl.textContent = realChartData[period].avg;
+            if (maxEl) maxEl.textContent = realChartData[period].max;
+            if (minEl) minEl.textContent = realChartData[period].min;
         }
 
         /* ========== НАВИГАЦИЯ ========== */
