@@ -1017,10 +1017,26 @@
                 </div>
 
                 <div class="kpi-grid">
-                    <div class="kpi-card"><div class="kpi-card__label">Расходы за месяц</div><div class="kpi-card__value">₽ 68 340</div><span class="kpi-card__change kpi-card__change--down">▼ 12% к августу</span></div>
-                    <div class="kpi-card"><div class="kpi-card__label">Доходы</div><div class="kpi-card__value">₽ 124 500</div><span class="kpi-card__change kpi-card__change--up">▲ 8% к августу</span></div>
-                    <div class="kpi-card"><div class="kpi-card__label">Накопления</div><div class="kpi-card__value">₽ 56 160</div><span class="kpi-card__change kpi-card__change--up">▲ 15% к августу</span></div>
-                    <div class="kpi-card"><div class="kpi-card__label">Операций</div><div class="kpi-card__value">247</div><span class="kpi-card__change kpi-card__change--up">▲ 34 из чеков</span></div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__label">Расходы за месяц</div>
+                        <div class="kpi-card__value">₽ 68 340</div>
+                        <span class="kpi-card__change kpi-card__change--down">▼ 12% к августу</span>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__label">Доходы</div>
+                        <div class="kpi-card__value">₽ 124 500</div>
+                        <span class="kpi-card__change kpi-card__change--up">▲ 8% к августу</span>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__label">Баланс</div>
+                        <div class="kpi-card__value">₽ 0</div>
+                        <span class="kpi-card__change kpi-card__change--up">▲ 15% к августу</span>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__label">Операций</div>
+                        <div class="kpi-card__value">247</div>
+                        <span class="kpi-card__change kpi-card__change--up">▲ 34 из чеков</span>
+                    </div>
                 </div>
 
                 <div class="dashboard-grid">
@@ -1685,9 +1701,21 @@
             // Десктопные KPI
             const cards = document.querySelectorAll('#page-dashboard .kpi-card');
             if (cards.length >= 4) {
-                cards[0].querySelector('.kpi-card__value').textContent = '₽ ' + kpi.expenses.toLocaleString('ru-RU');
-                cards[1].querySelector('.kpi-card__value').textContent = '₽ ' + kpi.incomes.toLocaleString('ru-RU');
-                cards[2].querySelector('.kpi-card__value').textContent = '₽ ' + Math.max(0, kpi.savings).toLocaleString('ru-RU');
+                // 0: Расходы
+                cards[0].querySelector('.kpi-card__value').textContent =
+                    '₽ ' + kpi.expenses.toLocaleString('ru-RU');
+
+                // 1: Доходы
+                cards[1].querySelector('.kpi-card__value').textContent =
+                    '₽ ' + kpi.incomes.toLocaleString('ru-RU');
+
+                // 2: Баланс (доходы − расходы)
+                const balance = kpi.incomes - kpi.expenses;
+                const balanceEl = cards[2].querySelector('.kpi-card__value');
+                balanceEl.textContent = (balance >= 0 ? '' : '−') + '₽ ' + Math.abs(balance).toLocaleString('ru-RU');
+                balanceEl.style.color = balance < 0 ? 'var(--accent-p)' : '';
+
+                // 3: Операций
                 cards[3].querySelector('.kpi-card__value').textContent = kpi.operationsCount;
             }
 
