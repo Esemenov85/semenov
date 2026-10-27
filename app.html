@@ -751,7 +751,15 @@
             background: var(--accent-y); color: #0B3C49;
             display: flex; align-items: center; justify-content: center;
             font-weight: 800; flex-shrink: 0;
+            /* ★ новые свойства для кнопки */
+            border: none;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.15s, background-color 0.2s;
         }
+
+        /* ★ новые правила — добавить сразу после .mobile-header__avatar */
         .mobile-header__avatar:hover { background: #ffe600; }
         .mobile-header__avatar:active { transform: scale(0.95); }
 
