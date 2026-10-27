@@ -1424,6 +1424,104 @@
                 </div>
             </div>
 
+            <!-- ================= ПРОФИЛЬ ================= -->
+            <div class="page" id="page-profile">
+                <div class="topbar">
+                    <div class="topbar__left">
+                        <button class="mobile-menu-btn" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+                        <div>
+                            <h1 class="topbar__title">Профиль</h1>
+                            <p class="topbar__subtitle">Ваши данные и настройки аккаунта</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel__head">
+                        <h2 class="panel__title">Личные данные</h2>
+                        <button class="btn btn--primary btn--sm" id="profileEditBtn" onclick="toggleProfileEdit()">✏️ Редактировать</button>
+                    </div>
+
+                    <!-- Режим просмотра -->
+                    <div id="profileView">
+                        <div class="profile-grid">
+                            <div class="profile-field">
+                                <div class="profile-field__label">Имя</div>
+                                <div class="profile-field__value" id="profileViewFirstName">—</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field__label">Фамилия</div>
+                                <div class="profile-field__value" id="profileViewLastName">—</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field__label">Email</div>
+                                <div class="profile-field__value" id="profileViewEmail">—</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field__label">Телефон</div>
+                                <div class="profile-field__value" id="profileViewPhone">—</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field__label">Telegram</div>
+                                <div class="profile-field__value" id="profileViewTelegram">—</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field__label">VK</div>
+                                <div class="profile-field__value" id="profileViewVk">—</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field__label">MAX</div>
+                                <div class="profile-field__value" id="profileViewMax">—</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field__label">Дата регистрации</div>
+                                <div class="profile-field__value" id="profileViewCreated">—</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Режим редактирования -->
+                    <div id="profileEdit" style="display: none;">
+                        <form onsubmit="event.preventDefault(); saveProfile();">
+                            <div class="profile-grid">
+                                <div class="op-form__field">
+                                    <label class="op-form__label">Имя <span style="color:var(--accent-p)">*</span></label>
+                                    <input type="text" class="op-form__input" id="profileEditFirstName" minlength="2" required>
+                                </div>
+                                <div class="op-form__field">
+                                    <label class="op-form__label">Фамилия <span style="color:var(--accent-p)">*</span></label>
+                                    <input type="text" class="op-form__input" id="profileEditLastName" minlength="2" required>
+                                </div>
+                                <div class="op-form__field">
+                                    <label class="op-form__label">Email</label>
+                                    <input type="email" class="op-form__input" id="profileEditEmail" disabled title="Email менять нельзя">
+                                </div>
+                                <div class="op-form__field">
+                                    <label class="op-form__label">Телефон</label>
+                                    <input type="tel" class="op-form__input" id="profileEditPhone" placeholder="+7 900 000-00-00">
+                                </div>
+                                <div class="op-form__field">
+                                    <label class="op-form__label">Telegram</label>
+                                    <input type="text" class="op-form__input" id="profileEditTelegram" placeholder="@username">
+                                </div>
+                                <div class="op-form__field">
+                                    <label class="op-form__label">VK</label>
+                                    <input type="text" class="op-form__input" id="profileEditVk" placeholder="username">
+                                </div>
+                                <div class="op-form__field">
+                                    <label class="op-form__label">MAX</label>
+                                    <input type="text" class="op-form__input" id="profileEditMax" placeholder="@username">
+                                </div>
+                            </div>
+                            <div class="op-form__actions">
+                                <button type="button" class="btn btn--ghost" onclick="toggleProfileEdit()">Отмена</button>
+                                <button type="submit" class="btn btn--primary" id="profileSaveBtn">Сохранить</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- ================= НАСТРОЙКИ ================= -->
             <div class="page" id="page-settings">
                 <div class="topbar">
