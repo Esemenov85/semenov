@@ -1648,8 +1648,25 @@
         }
 
         // Пересчёт KPI из операций
-        function computeKPI(ops) {
-            const monthOps = ops.filter(op => isCurrentMonth(op.date));
+        // Проверяет, попадает ли операция в прошлый месяц
+        function isPreviousMonth(dateStr) {
+            if (!dateStr) return false;
+            const parts = dateStr.split('.');
+            if (parts.length !== 3) return false;
+            const [day, month, year] = parts.map(Number);
+            const now = new Date();
+            let prevMonth = now.getMonth(); // 0-based
+            let prevYear = now.getFullYear();
+            if (prevMonth === 0) {
+                prevMonth = 12;
+                prevYear -= 1;
+            }
+            return day >= 1 && month === prevMonth && year === prevYear;
+        }
+
+        // Считает KPI для конкретного фильтра месяца
+        function computeKPIForMonth(ops, filterFn) {
+            const monthOps = ops.filter(filterFn);
 
             const expenses = monthOps
                 .filter(op => op.amount < 0)
@@ -1662,8 +1679,36 @@
             return {
                 expenses,
                 incomes,
-                savings: incomes - expenses,
+                balance: incomes - expenses,
                 operationsCount: monthOps.length,
+            };
+        }
+
+        // Считает изменение в процентах
+        function percentChange(current, previous) {
+            if (previous === 0) {
+                // Нет базы для сравнения
+                if (current === 0) return { value: 0, hasData: false };
+                return { value: null, hasData: false }; // «новое» — нет базы
+            }
+            const diff = current - previous;
+            const percent = Math.round((diff / previous) * 100);
+            return { value: percent, hasData: true };
+        }
+
+        // Пересчёт KPI из операций (с текущим и прошлым месяцем)
+        function computeKPI(ops) {
+            const current = computeKPIForMonth(ops, isCurrentMonth);
+            const previous = computeKPIForMonth(ops, isPreviousMonth);
+
+            return {
+                current,
+                previous,
+                // Для совместимости со старым кодом
+                expenses: current.expenses,
+                incomes: current.incomes,
+                savings: current.balance,
+                operationsCount: current.operationsCount,
             };
         }
 
