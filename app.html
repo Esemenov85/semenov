@@ -2335,6 +2335,119 @@
             }, 100);
         }
         
+        /* ============================================================
+        ★ ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ★
+        ============================================================ */
+
+        async function loadProfile() {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) return;
+
+            const { data: profile, error } = await sb
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (error || !profile) {
+                console.error('Ошибка загрузки профиля:', error);
+                return;
+            }
+
+            // Режим просмотра
+            document.getElementById('profileViewFirstName').textContent = profile.first_name || '—';
+            document.getElementById('profileViewLastName').textContent = profile.last_name || '—';
+            document.getElementById('profileViewEmail').textContent = profile.email || user.email || '—';
+            document.getElementById('profileViewPhone').textContent = profile.phone || '—';
+            document.getElementById('profileViewTelegram').textContent = profile.telegram || '—';
+            document.getElementById('profileViewVk').textContent = profile.vk || '—';
+            document.getElementById('profileViewMax').textContent = profile.max || '—';
+            document.getElementById('profileViewCreated').textContent = profile.created_at
+                ? new Date(profile.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
+                : '—';
+
+            // Форма редактирования
+            document.getElementById('profileEditFirstName').value = profile.first_name || '';
+            document.getElementById('profileEditLastName').value = profile.last_name || '';
+            document.getElementById('profileEditEmail').value = profile.email || user.email || '';
+            document.getElementById('profileEditPhone').value = profile.phone || '';
+            document.getElementById('profileEditTelegram').value = profile.telegram || '';
+            document.getElementById('profileEditVk').value = profile.vk || '';
+            document.getElementById('profileEditMax').value = profile.max || '';
+        }
+
+        function toggleProfileEdit() {
+            const view = document.getElementById('profileView');
+            const edit = document.getElementById('profileEdit');
+            const btn = document.getElementById('profileEditBtn');
+
+            if (edit.style.display === 'none') {
+                view.style.display = 'none';
+                edit.style.display = 'block';
+                btn.textContent = '✖️ Отмена';
+            } else {
+                view.style.display = 'block';
+                edit.style.display = 'none';
+                btn.textContent = '✏️ Редактировать';
+                loadProfile();
+            }
+        }
+
+        async function saveProfile() {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) {
+                alert('Вы не авторизованы');
+                return;
+            }
+
+            const firstName = document.getElementById('profileEditFirstName').value.trim();
+            const lastName = document.getElementById('profileEditLastName').value.trim();
+            const phone = document.getElementById('profileEditPhone').value.trim();
+            const telegram = document.getElementById('profileEditTelegram').value.trim();
+            const vk = document.getElementById('profileEditVk').value.trim();
+            const max = document.getElementById('profileEditMax').value.trim();
+            const btn = document.getElementById('profileSaveBtn');
+
+            if (!firstName || firstName.length < 2) {
+                alert('Имя должно быть не короче 2 символов');
+                return;
+            }
+            if (!lastName || lastName.length < 2) {
+                alert('Фамилия должна быть не короче 2 символов');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Сохраняем…';
+
+            const { error } = await sb
+                .from('profiles')
+                .update({
+                    first_name: firstName,
+                    last_name: lastName,
+                    phone: phone || null,
+                    telegram: telegram || null,
+                    vk: vk || null,
+                    max: max || null,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('id', user.id);
+
+            btn.disabled = false;
+            btn.textContent = 'Сохранить';
+
+            if (error) {
+                console.error('Ошибка сохранения профиля:', error);
+                alert('Не удалось сохранить: ' + error.message);
+                return;
+            }
+
+            await loadProfile();
+            await loadUserInfo();
+            toggleProfileEdit();
+            alert('Профиль сохранён ✅');
+        }
+
         /* ========== ИНИЦИАЛИЗАЦИЯ ========== */
         document.addEventListener('DOMContentLoaded', async function () {
             initTheme();
