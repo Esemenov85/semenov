@@ -1040,6 +1040,44 @@
         }
         .add-sheet__cancel:hover { background: var(--hover-row); }
 
+        /* ============================================================
+        ПРОФИЛЬ
+        ============================================================ */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem 1.5rem;
+        }
+
+        .profile-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .profile-field__label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .profile-field__value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--main);
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            word-break: break-word;
+            min-height: 1.5rem;
+        }
+
+        [data-theme="dark"] .profile-field__value { color: var(--text); }
+
+        @media (max-width: 600px) {
+            .profile-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
