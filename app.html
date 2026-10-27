@@ -2259,6 +2259,11 @@
             document.getElementById('sidebarOverlay').classList.remove('show');
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // ★ Загружаем профиль при переходе на страницу
+            if (pageId === 'profile') {
+                loadProfile();
+            }
         }
 
         function toggleSidebar() {
