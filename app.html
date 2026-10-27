@@ -1966,11 +1966,24 @@
                 balanceEl.textContent = (balance >= 0 ? '' : '−') + '₽ ' + Math.abs(balance).toLocaleString('ru-RU');
                 balanceEl.style.color = balance < 0 ? 'var(--accent-p)' : '';
             }
-            const balanceChange = percentChange(
-                Math.abs(balance),
-                Math.abs(kpi.previous.balance)
-            );
-            updateCard(2, null, balanceChange, false);
+
+            // Обновляем только подпись изменения для «Баланса» — без вызова updateCard
+            const balanceChangeEl = cards[2].querySelector('.kpi-card__change');
+            if (balanceChangeEl) {
+                const balanceChange = percentChange(Math.abs(balance), Math.abs(kpi.previous.balance));
+                if (!balanceChange.hasData) {
+                    balanceChangeEl.textContent = '— нет данных за прошлый месяц';
+                    balanceChangeEl.className = 'kpi-card__change';
+                } else if (balanceChange.value === 0) {
+                    balanceChangeEl.textContent = '= без изменений';
+                    balanceChangeEl.className = 'kpi-card__change';
+                } else {
+                    const arrow = balanceChange.value > 0 ? '▲' : '▼';
+                    const sign = balanceChange.value > 0 ? '+' : '';
+                    balanceChangeEl.textContent = `${arrow} ${sign}${balanceChange.value}% к прошлому месяцу`;
+                    balanceChangeEl.className = 'kpi-card__change ' + (balanceChange.value > 0 ? 'kpi-card__change--up' : 'kpi-card__change--down');
+                }
+            }
 
             // 3: Операций
             updateCard(3,
