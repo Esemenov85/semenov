@@ -1548,25 +1548,57 @@
         ★ РАСЧЁТ СТАТИСТИКИ ИЗ ОПЕРАЦИЙ ★
         ============================================================ */
 
+        // ★ Универсальный парсер даты: понимает DD.MM.YYYY и YYYY-MM-DD
+        function parseDate(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return null;
+
+            // Формат DD.MM.YYYY
+            if (dateStr.includes('.')) {
+                const parts = dateStr.split('.');
+                if (parts.length !== 3) return null;
+                const [day, month, year] = parts.map(Number);
+                if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+                return new Date(year, month - 1, day);
+            }
+
+            // Формат YYYY-MM-DD (ISO)
+            if (dateStr.includes('-')) {
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return null;
+                const [year, month, day] = parts.map(Number);
+                if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+                return new Date(year, month - 1, day);
+            }
+
+            return null;
+        }
+
         // Проверяет, попадает ли операция в текущий месяц
         function isCurrentMonth(dateStr) {
-            if (!dateStr || typeof dateStr !== 'string') return false;
-            const parts = dateStr.split('.');
-            if (parts.length !== 3) return false;
-            const [day, month, year] = parts.map(Number);
-            if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
+            const d = parseDate(dateStr);
+            if (!d) return false;
             const now = new Date();
-            return day >= 1 && month === (now.getMonth() + 1) && year === now.getFullYear();
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }
+
+        // Проверяет, попадает ли операция в прошлый месяц
+        function isPreviousMonth(dateStr) {
+            const d = parseDate(dateStr);
+            if (!d) return false;
+            const now = new Date();
+            let prevMonth = now.getMonth() - 1;
+            let prevYear = now.getFullYear();
+            if (prevMonth < 0) {
+                prevMonth = 11;
+                prevYear -= 1;
+            }
+            return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
         }
 
         // Проверяет, попадает ли операция в текущую неделю
         function isCurrentWeek(dateStr) {
-            if (!dateStr || typeof dateStr !== 'string') return false;
-            const parts = dateStr.split('.');
-            if (parts.length !== 3) return false;
-            const [day, month, year] = parts.map(Number);
-            if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
-            const opDate = new Date(year, month - 1, day);
+            const d = parseDate(dateStr);
+            if (!d) return false;
             const now = new Date();
             const startOfWeek = new Date(now);
             startOfWeek.setDate(now.getDate() - now.getDay() + 1);
@@ -1574,17 +1606,14 @@
             const endOfWeek = new Date(startOfWeek);
             endOfWeek.setDate(startOfWeek.getDate() + 6);
             endOfWeek.setHours(23, 59, 59, 999);
-            return opDate >= startOfWeek && opDate <= endOfWeek;
+            return d >= startOfWeek && d <= endOfWeek;
         }
 
         // Проверяет, попадает ли операция в текущий год
         function isCurrentYear(dateStr) {
-            if (!dateStr || typeof dateStr !== 'string') return false;
-            const parts = dateStr.split('.');
-            if (parts.length !== 3) return false;
-            const year = Number(parts[2]);
-            if (isNaN(year)) return false;
-            return year === new Date().getFullYear();
+            const d = parseDate(dateStr);
+            if (!d) return false;
+            return d.getFullYear() === new Date().getFullYear();
         }
 
         // Фильтр по периоду
@@ -1648,24 +1677,6 @@
                 }))
                 .sort((a, b) => b.amount - a.amount)
                 .slice(0, 10); // топ-10
-        }
-
-        // Пересчёт KPI из операций
-        // Проверяет, попадает ли операция в прошлый месяц
-        function isPreviousMonth(dateStr) {
-            if (!dateStr || typeof dateStr !== 'string') return false;
-            const parts = dateStr.split('.');
-            if (parts.length !== 3) return false;
-            const [day, month, year] = parts.map(Number);
-            if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
-            const now = new Date();
-            let prevMonth = now.getMonth();
-            let prevYear = now.getFullYear();
-            if (prevMonth === 0) {
-                prevMonth = 12;
-                prevYear -= 1;
-            }
-            return day >= 1 && month === prevMonth && year === prevYear;
         }
 
         // Считает KPI для конкретного фильтра месяца
