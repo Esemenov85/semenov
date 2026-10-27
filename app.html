@@ -1681,7 +1681,7 @@
 
         // Считает KPI для конкретного фильтра месяца
         function computeKPIForMonth(ops, filterFn) {
-            const monthOps = ops.filter(filterFn);
+            const monthOps = ops.filter(op => filterFn(op.date));
 
             const expenses = monthOps
                 .filter(op => op.amount < 0)
