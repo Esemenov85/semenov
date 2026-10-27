@@ -2259,7 +2259,7 @@
             document.getElementById('sidebarOverlay').classList.remove('show');
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            
+
             // ★ Загружаем профиль при переходе на страницу
             if (pageId === 'profile') {
                 loadProfile();
@@ -2495,6 +2495,7 @@
 
             // ★ Загружаем данные пользователя
             await loadUserInfo();
+            await loadProfile();
 
             // Сессия есть — рендерим данные и показываем интерфейс
             renderCategories('desktopCategoryList');
