@@ -1888,32 +1888,102 @@
         function updateKPICards(ops) {
             const kpi = computeKPI(ops);
 
-            // Десктопные KPI
             const cards = document.querySelectorAll('#page-dashboard .kpi-card');
-            if (cards.length >= 4) {
-                // 0: Расходы
-                cards[0].querySelector('.kpi-card__value').textContent =
-                    '₽ ' + kpi.expenses.toLocaleString('ru-RU');
+            if (cards.length < 4) return;
 
-                // 1: Доходы
-                cards[1].querySelector('.kpi-card__value').textContent =
-                    '₽ ' + kpi.incomes.toLocaleString('ru-RU');
+            // Вспомогательная функция для обновления карточки
+            function updateCard(index, value, changeData, invertColors) {
+                const card = cards[index];
+                const valueEl = card.querySelector('.kpi-card__value');
+                const changeEl = card.querySelector('.kpi-card__change');
 
-                // 2: Баланс (доходы − расходы)
-                const balance = kpi.incomes - kpi.expenses;
-                const balanceEl = cards[2].querySelector('.kpi-card__value');
+                if (valueEl) valueEl.textContent = value;
+
+                if (!changeEl) return;
+
+                if (!changeData.hasData) {
+                    changeEl.textContent = '— нет данных за прошлый месяц';
+                    changeEl.className = 'kpi-card__change';
+                    return;
+                }
+
+                const pct = changeData.value;
+                if (pct === 0) {
+                    changeEl.textContent = '= без изменений';
+                    changeEl.className = 'kpi-card__change';
+                    return;
+                }
+
+                const arrow = pct > 0 ? '▲' : '▼';
+                const sign = pct > 0 ? '+' : '';
+                changeEl.textContent = `${arrow} ${sign}${pct}% к прошлому месяцу`;
+
+                // Цвет: для расходов рост — плохо (пурпурный), падение — хорошо (жёлтый).
+                // Для доходов/баланса — наоборот.
+                let isGood;
+                if (invertColors) {
+                    isGood = pct < 0; // рост расходов — плохо
+                } else {
+                    isGood = pct > 0; // рост доходов — хорошо
+                }
+
+                changeEl.className = 'kpi-card__change ' + (isGood ? 'kpi-card__change--up' : 'kpi-card__change--down');
+            }
+
+            // 0: Расходы
+            updateCard(0,
+                '₽ ' + kpi.current.expenses.toLocaleString('ru-RU'),
+                percentChange(kpi.current.expenses, kpi.previous.expenses),
+                true // рост расходов — плохо
+            );
+
+            // 1: Доходы
+            updateCard(1,
+                '₽ ' + kpi.current.incomes.toLocaleString('ru-RU'),
+                percentChange(kpi.current.incomes, kpi.previous.incomes),
+                false // рост доходов — хорошо
+            );
+
+            // 2: Баланс
+            const balance = kpi.current.balance;
+            const balanceEl = cards[2].querySelector('.kpi-card__value');
+            if (balanceEl) {
                 balanceEl.textContent = (balance >= 0 ? '' : '−') + '₽ ' + Math.abs(balance).toLocaleString('ru-RU');
                 balanceEl.style.color = balance < 0 ? 'var(--accent-p)' : '';
-
-                // 3: Операций
-                cards[3].querySelector('.kpi-card__value').textContent = kpi.operationsCount;
             }
+            const balanceChange = percentChange(
+                Math.abs(balance),
+                Math.abs(kpi.previous.balance)
+            );
+            updateCard(2, null, balanceChange, false);
+
+            // 3: Операций
+            updateCard(3,
+                String(kpi.current.operationsCount),
+                percentChange(kpi.current.operationsCount, kpi.previous.operationsCount),
+                false
+            );
 
             // ★ Мобильная плашка
             const mobileAmount = document.getElementById('mobileBalanceAmount');
             const mobileLabel = document.getElementById('mobileBalanceLabel');
-            if (mobileAmount) mobileAmount.textContent = '₽ ' + kpi.expenses.toLocaleString('ru-RU');
+            if (mobileAmount) mobileAmount.textContent = '₽ ' + kpi.current.expenses.toLocaleString('ru-RU');
             if (mobileLabel) mobileLabel.textContent = 'Расходы за ' + getCurrentMonthName();
+
+            // ★ Изменение в мобильной плашке
+            const mobileChange = document.getElementById('mobileBalanceChange');
+            if (mobileChange) {
+                const expChange = percentChange(kpi.current.expenses, kpi.previous.expenses);
+                if (!expChange.hasData) {
+                    mobileChange.textContent = '—';
+                } else if (expChange.value === 0) {
+                    mobileChange.textContent = '=';
+                } else {
+                    const arrow = expChange.value > 0 ? '▲' : '▼';
+                    const sign = expChange.value > 0 ? '+' : '';
+                    mobileChange.textContent = `${arrow} ${sign}${expChange.value}%`;
+                }
+            }
         }
 
         function getCurrentMonthName() {
